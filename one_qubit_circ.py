@@ -31,13 +31,12 @@ def main_circuit_1qubit(state, ham, tau, j, id="X"):
 
     # apply the controlled time evolution
     expH = sl.expm(-1.j * j * tau * ham) # exponential of a matrix
-    c_expH = control_time_evolve_1qubit(expH)
+    c_expH = control_op_1q(expH)
     full_state = np.dot(c_expH, full_state)
 
     # apply W gate to ancilla
-    if id == 'X':
-        W = I
-    elif id == 'Y':
+    W = I
+    if id == 'Y':
         W = Sdag
     full_W = np.kron(W, I)
     full_state = np.dot(full_W, full_state)
@@ -51,23 +50,31 @@ def main_circuit_1qubit(state, ham, tau, j, id="X"):
 def measure_ancilla(full_state):
     '''
     Do a measurement of the ancilla qubit.
-    Since we have the full state information, we will give the 
-    exact probablities of getting state |0> and |1>
+    Args:
+        full_state: 1d array, the two-qubit state of | ancilla, state>
+    Returns:
+        int: 0 or 1, measurement of the ancilla qubit
+
     '''
-    prop_0 = np.linalg.norm(full_state[0])**2 + np.linalg.norm(full_state[1])**2
-    prop_1 = np.linalg.norm(full_state[2])**2 + np.linalg.norm(full_state[3])**2
+    l_state = full_state.shape[-1]
+    l_half = int(l_state / 2)
+    assert abs(l_half - l_state/2) < 1e-10 # must be even   
+    p0 = np.sum(full_state[:l_half]**2)
+
+    # props = np.array([p0, 1 - p0])
+    # outs = np.array([0, 1])
+    # a = np.random.choice(outs, p=props)
+    # return a
+    # NOTE: for some reason np.random.choice() is much slower than my code.
 
     # mimic the collapsing
     a =  random.uniform(0, 1)
-    if a < prop_0:
+    if a < p0:
         return 0
     else:
         return 1
 
-    #return np.array([prop_0, prop_1])
-
-
-def control_time_evolve_1qubit(op):
+def control_op_1q(op):
     '''
     Given a single qubit operator op, return controlled-op.
     For single qubit, the formula is simply 
@@ -81,8 +88,8 @@ def control_time_evolve_1qubit(op):
 
 if __name__ == "__main__":
 
-    # run control_time_evolve_1qubit
-    cnot = control_time_evolve_1qubit(X)
+    # run control_op_1q
+    cnot = control_op_1q(X)
     print(cnot)
     
     # run main_circuit_1qubit
