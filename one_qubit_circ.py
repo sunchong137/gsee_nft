@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import linalg as sl
 import random
+import helpers
 
 # Define single-qubit gates
 X = np.array([[0., 1.], [1., 0.]])
@@ -12,18 +13,21 @@ S = np.array([[1., 0.], [0., 1.j]]) # phase gate
 Sdag = np.array([[1., 0.], [0., -1.j]]) # S^\dag
 
 ####### Main circuit #######
-def main_circuit_1qubit(state, ham, tau, j, id="X"):
+def main_circuit_1q(state, ham, j, tau=None, id="X"):
     '''n circuit for the one qubit case.
     Main circuit. Eq.(1) in the paper
     Args:
         ham  : hamiltonian
         ham: Hamiltonian, 2x2 array
-        tau: rescaling factor
-        j  : a number I am not sure what it is # TODO
+        j  : integer
+         tau: rescaling factor
         id  : measure the real part or imaginary part.
     Return:
         The entangled state of the ancilla qubit and state qubit.
     '''
+    if tau is None:
+        tau = helpers.rescale_ham_slow(ham)
+
     # apply Hadamard gate onto ancilla first
     ancilla = np.array([1, 0])
     ancilla = np.dot(Hd, ancilla)
@@ -59,7 +63,7 @@ def measure_ancilla(full_state):
     l_state = full_state.shape[-1]
     l_half = int(l_state / 2)
     assert abs(l_half - l_state/2) < 1e-10 # must be even   
-    p0 = np.sum(full_state[:l_half]**2)
+    p0 = np.sum(np.abs(full_state[:l_half]) **2 )
 
     # props = np.array([p0, 1 - p0])
     # outs = np.array([0, 1])
@@ -101,7 +105,7 @@ if __name__ == "__main__":
     tau = np.pi/(3 * max(abs(ew[0]), abs(ew[1])))
     j = 1
     W = I
-    full_state = main_circuit_1qubit(state, ham, tau, j, W)
+    full_state = main_circuit_1q(state, ham, tau, j, W)
     print(full_state)
 
     # run measure_ancilla()

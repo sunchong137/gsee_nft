@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../")
 from one_qubit_circ import *
+import helpers
 import numpy as np
 import time
 
@@ -38,7 +39,18 @@ def test_measure_ancilla():
     assert np.abs(p0 - prop_0) < 1e-2
     print("Diff: {}".format(np.abs(p0 - prop_0)))
 
-
+def test_main_circuit_1q():
+    # generate a random Hamiltonian
+    ham = np.random.rand(2, 2)
+    ham = 0.5 * (ham + ham.T)
+    # generate a random initial state
+    state = np.random.rand(2)
+    state /= np.linalg.norm(state)
+    j = 2
+    full_state = main_circuit_1q(state, ham, j)
+    print(full_state) 
+    assert abs(np.linalg.norm(full_state) - 1) < 1e-10
 if __name__ == "__main__":
     #test_control_op_1q()
     test_measure_ancilla()
+    test_main_circuit_1q()

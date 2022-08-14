@@ -178,6 +178,22 @@ def dft_heaviside(k):
 
     return Hk
 
+def rescale_ham_slow(ham, bound=pi/3):
+    '''
+    Rescaling the hamiltonian, returns the rescaling factor tau.
+    Suppose we can diagonalize the Hamiltonian.
+    Args:
+        ham - the array of the Hamiltonian
+        bound - the upper limit of tau * ||ham||
+    Returns:
+        a double number - tau
+    '''
+    ew, _ = np.linalg.eigh(ham)
+    tau = bound / max(abs(ew[0]), abs(ew[-1]))
+
+    return tau
+
+
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
 import sys
-from tkinter.tix import Tree
 sys.path.append('../')
 from helpers import *
 from matplotlib import pyplot as plt
@@ -130,6 +129,12 @@ def compare_aheaviside():
     plt.legend()
     #plt.savefig("figures/aheaviside_compare.png", dpi=300)
 
+def test_rescale_ham_slow():
+    ham = np.random.rand(4,4)
+    tau = rescale_ham_slow(ham)
+    print(tau)
+
+
 if __name__ == "__main__":
     test_chebyshev_slow()
     test_smear_dirac()
@@ -140,3 +145,4 @@ if __name__ == "__main__":
     test_aheaviside_ft()
     test_aheaviside_convol()
     compare_aheaviside()
+    test_rescale_ham_slow()
