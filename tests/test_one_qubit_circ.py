@@ -12,6 +12,7 @@ def test_control_op_1q():
     cx = control_op_1q(X)
     diff = np.linalg.norm(cx - CNOT)
     assert diff < 1e-15
+
 def test_measure_ancilla():
     state = np.random.rand(4)
     state /= np.linalg.norm(state)
@@ -51,6 +52,6 @@ def test_main_circuit_1q():
     print(full_state) 
     assert abs(np.linalg.norm(full_state) - 1) < 1e-10
 if __name__ == "__main__":
-    #test_control_op_1q()
+    test_control_op_1q()
     test_measure_ancilla()
     test_main_circuit_1q()

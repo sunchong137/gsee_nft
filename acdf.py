@@ -1,35 +1,41 @@
 import numpy as np
 import helpers
-import one_qubit
+import one_qubit_circ
 
 pi = np.pi 
 
 # TODO absorb tau into ham.
 
-def measure_Xj_1q(state, ham, tau, j):
+def measure_Xj_1q(state, ham, j, tau=None):
     '''
     Measure the real part of Tr[\rho exp(-i k tau H)]
     One qubit case.
     Args:
         state: initial state
         ham: Hamiltonian
+        j: parameter sampled
         tau: rescaling factor of the Hamiltonian
-        k: parameter sampled
     returns:
         a number to be either 1 or -1.
     '''
-    full_state = one_qubit.main_circuit_1qubit(state, ham, tau, j, id="X")
-    _Xj = one_qubit.measure_ancilla(full_state)
+    if tau is None:
+        tau = helpers.rescale_ham_slow(ham)
+
+    full_state = one_qubit_circ.main_circuit_1q(state, ham, tau, j, id="X")
+    _Xj = one_qubit_circ.measure_ancilla(full_state)
     Xj = -1. * (2 * _Xj - 1) # 0 -> 1, 1 -> -1
     return Xj
 
-def measure_Yj_1q(state, ham, tau, j):
+def measure_Yj_1q(state, ham, j, tau=None):
     '''
     Measure the imaginary part of Tr[\rho exp(-i k tau H)]
     One qubit case.
     '''
-    full_state = one_qubit.main_circuit_1qubit(state, ham, tau, j, id="Y")
-    _Yj = one_qubit.measure_ancilla(full_state)
+    if tau is None:
+        tau = helpers.rescale_ham_slow(ham)
+
+    full_state = one_qubit_circ.main_circuit_1q(state, ham, tau, j, id="Y")
+    _Yj = one_qubit_circ.measure_ancilla(full_state)
     Yj = -1. * (2 * _Yj - 1) # 0 -> 1, 1 -> -1
     return Yj
     
@@ -50,7 +56,7 @@ def eval_G(x, F_tot, j, Xj, Yj, ang_j):
     G = F_tot * (Xj + 1.j * Yj) * np.exp(1.j * (ang_j + j * x))
     return G
 
-def adcf_sampler_1q(Ns, d, delt, state, ham, tau, x=None, nmesh=200):
+def adcf_sampler_1q(Ns, d, delt, state, ham, tau=None, x=None, nmesh=200):
     '''
     Evaluate ACDF by sampling J and XJ + iYJ.
     Args:
@@ -60,6 +66,7 @@ def adcf_sampler_1q(Ns, d, delt, state, ham, tau, x=None, nmesh=200):
         state: initial state
         ham: Hamiltonian
         tau: rescaling factor of the Hamiltonian
+        x - points where the function is evaluated
         nmesh - number of grids to generate a mesh of real space points
     Returns:
         Js, Zs - two arrays.
@@ -84,21 +91,23 @@ def adcf_sampler_1q(Ns, d, delt, state, ham, tau, x=None, nmesh=200):
     X_samp = []
     Y_samp = []
     for j in j_samp:
-        X_samp.append(measure_Xj_1q(state, ham, tau, j))
-        Y_samp.append(measure_Yj_1q(state, ham, tau, j))
+        X_samp.append(measure_Xj_1q(state, ham, j, tau))
+        Y_samp.append(measure_Yj_1q(state, ham, j, tau))
 
-    X_samp = np.asaray(X_samp)
-    Y_samp = np.asaray(Y_samp)
+    X_samp = np.asarray(X_samp)
+    Y_samp = np.asarray(Y_samp)
 
     # generate G
     if x is None:
         x = np.linspace(-pi, pi, nmesh, endpoint=True)
-    G_samp = np.zeros(Ns, dtype=np.complex)
+    len_x = x.shape[-1]
+    G_samp = np.zeros(len_x, dtype=np.complex)
 
     for i in range(Ns):
         j, Xj, Yj = j_samp[i], X_samp[i], Y_samp[i]
         ang_j = Fj_angle[j + d] 
-        G_samp[iter] += eval_G(x, F_tot, j, Xj, Yj, ang_j)
+        G = eval_G(x, F_tot, j, Xj, Yj, ang_j)
+        G_samp += G
 
     G_samp /= Ns
 
