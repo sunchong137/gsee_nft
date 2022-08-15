@@ -14,7 +14,9 @@ def test_control_op_1q():
     assert diff < 1e-15
 
 def test_measure_ancilla():
-    state = np.random.rand(4)
+    state_r = np.random.rand(4)
+    state_i = np.random.rand(4)
+    state = state_r + 1.j * state_i
     state /= np.linalg.norm(state)
     prop_0 = np.linalg.norm(state[0])**2 + np.linalg.norm(state[1])**2
     prop_1 = np.linalg.norm(state[2])**2 + np.linalg.norm(state[3])**2

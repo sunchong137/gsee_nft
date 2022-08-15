@@ -54,11 +54,18 @@ def test_adcf_sampler_1q():
     # generate a random Hamiltonian
     ham = np.random.rand(2, 2)
     ham = 0.5 * (ham + ham.T)
+    ew, _ = np.linalg.eigh(ham)
+    print("eigenvalues - E1: {}; E2: {}".format(ew[0], ew[1]))
     # generate a random initial state
     state = np.random.rand(2)
     state /= np.linalg.norm(state)
     G_bar = adcf_sampler_1q(Ns, d, delt, state, ham, x=x)
+
     plt.plot(x, G_bar)
+    plt.xticks(ticks=ew, labels=["E0", "E1"])
+    plt.xlabel(r"$E$")
+    plt.ylabel(r"$\bar{G}$")
+    plt.savefig("figures/G_bar.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":
