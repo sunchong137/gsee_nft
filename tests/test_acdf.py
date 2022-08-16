@@ -40,11 +40,12 @@ def test_eval_G():
     j = 2
     Xj = 1.0
     Yj = -1.0
+    Zj = Xj + 1.j*Yj
     ang_j = 0.1
-    G = eval_G(x, F_tot, j, Xj, Yj, ang_j)
+    G = eval_G(x, j, Zj, ang_j)
     print(G.shape)
 
-def test_adcf_sampler_1q():
+def test_adcf_kernel_1q():
     Ns = 10000
     d = 40
     delt = 0.2
@@ -62,8 +63,9 @@ def test_adcf_sampler_1q():
     p0 = np.dot(ev[0].T, state) ** 2
     print("The overlap between the initial state and the ground state: {}".format(p0))
     # generate a random initial state
+    Fj, j_samp, Z_samp = sampler(Ns, d, delt, state, ham, tau=None, nmesh=nmesh)
 
-    G_bar = adcf_sampler_1q(Ns, d, delt, state, ham, x=x)
+    G_bar = adcf_kernel_1q(d, Fj, j_samp, Z_samp, x=x, nmesh=nmesh)
 
     plt.plot(x, G_bar)
     plt.xticks(ticks=ew, labels=["E0", "E1"])
@@ -77,4 +79,4 @@ if __name__ == "__main__":
     #test_measure_Xj_1q()
     #test_measure_Yj_1q()
     #test_eval_G()
-    test_adcf_sampler_1q()
+    test_adcf_kernel_1q()
