@@ -54,11 +54,15 @@ def test_adcf_sampler_1q():
     # generate a random Hamiltonian
     ham = np.random.rand(2, 2)
     ham = 0.5 * (ham + ham.T)
-    ew, _ = np.linalg.eigh(ham)
-    print("eigenvalues - E1: {}; E2: {}".format(ew[0], ew[1]))
-    # generate a random initial state
-    state = np.random.rand(2)
+    
+    ew, ev = np.linalg.eigh(ham)
+    state = ev[0] + np.random.rand(2) * 0.5 # make a good initial guess
     state /= np.linalg.norm(state)
+    print("eigenvalues - E1: {}; E2: {}".format(ew[0], ew[1]))
+    p0 = np.dot(ev[0].T, state) ** 2
+    print("The overlap between the initial state and the ground state: {}".format(p0))
+    # generate a random initial state
+
     G_bar = adcf_sampler_1q(Ns, d, delt, state, ham, x=x)
 
     plt.plot(x, G_bar)
