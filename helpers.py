@@ -44,13 +44,6 @@ def aheaviside_convol(d, delt, nmesh=200):
     return F
 
 
-# def get_norm_phase(x):
-#     '''
-#     Get the norm and phase angle theta of a complex number x = |x| exp(i theta).
-#     '''
-#     return np.abs(x), np.angle(x)
-
-
 def chebyshev_slow(x, d):
     '''
     Evaluating the d-th order of Chebyshev polynomial of the first kind 
