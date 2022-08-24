@@ -38,21 +38,7 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     Yj = -1. * (2 * ancilla_output - 1) # 0 -> 1, 1 -> -1
     return Yj
     
-def eval_acdf_single_sample(energy_grids, j_val, Zj, angle_j):
-    '''
-    Evaluate the G_function at points stored in x - energy grids.
-    G = F_tot * (Xj + iYj) * exp[i (ang_j + j * x)]
-    Args:
-        energy_grids - points at which the G function is evaluated.
-        F_tot - sum of the norms of DFT coeffs of the approximate Heaviside function.
-        j_val - int 
-        Zj -  a complex number that can be (+- 1 +- 1j)
-        angle_j - a number (angle)
-    Returns:
-        1D array of the size of x.
-    '''
-    G = Zj * np.exp(1.j * (angle_j + j_val * energy_grids))
-    return G
+
 
 def classical_sampler(num_samples, max_dft_order, rescaled_energy_acc, nmesh=200):
     '''
@@ -108,6 +94,22 @@ def quantum_sampler(j_samp, input_state, hamiltonian, energy_rescalor=None):
 
     return Z_samp
 
+def eval_acdf_single_sample(energy_grids, j_val, Zj, angle_j):
+    '''
+    Evaluate the G_function at points stored in x - energy grids.
+    G = F_tot * (Xj + iYj) * exp[i (ang_j + j * x)]
+    Args:
+        energy_grids - points at which the G function is evaluated.
+        F_tot - sum of the norms of DFT coeffs of the approximate Heaviside function.
+        j_val - int 
+        Zj -  a complex number that can be (+- 1 +- 1j)
+        angle_j - a number (angle)
+    Returns:
+        1D array of the size of x.
+    '''
+    G = Zj * np.exp(1.j * (angle_j + j_val * energy_grids))
+    return G
+    
 def adcf_kernel(max_dft_order, Fj, j_samp, Z_samp, energy_grid=None, nmesh=200):
     '''
     Evaluate ACDF given Fj, j_samp, Z_samp
@@ -129,8 +131,13 @@ def adcf_kernel(max_dft_order, Fj, j_samp, Z_samp, energy_grid=None, nmesh=200):
     # generate G
     if energy_grid is None:
         energy_grid = np.linspace(-pi, pi, nmesh, endpoint=True)
-    num_grid = energy_grid.shape[-1]
-    G_samp = np.zeros(num_grid, dtype=np.complex)
+    try:
+        num_grid = energy_grid.shape[-1]
+        G_samp = np.zeros(num_grid, dtype=np.complex)
+    except:
+        num_grid = 1
+        G_samp = 0.0
+    
 
     for i in range(num_samples):
         j, Zj = j_samp[i], Z_samp[i]
