@@ -45,7 +45,7 @@ def test_eval_acdf_single_sample():
     G = eval_acdf_single_sample(x, j, Zj, ang_j)
     print(G.shape)
 
-def test_adcf_kernel_1q():
+def test_adcf_kernel():
     Ns = 10000
     d = 40
     delt = 0.2
@@ -63,19 +63,20 @@ def test_adcf_kernel_1q():
     p0 = np.dot(ev[0].T, state) ** 2
     print("The overlap between the initial state and the ground state: {}".format(p0))
     # generate a random initial state
-    Fj, j_samp, Z_samp = sampler(Ns, d, delt, state, ham, tau=None, nmesh=nmesh)
+    Fj, j_samp = classical_sampler(Ns, d, delt, nmesh=nmesh)
+    Z_samp = quantum_sampler(j_samp, state, ham, energy_rescalor=None)
 
-    G_bar = adcf_kernel_1q(d, Fj, j_samp, Z_samp, x=x, nmesh=nmesh)
+    G_bar = adcf_kernel(d, Fj, j_samp, Z_samp, energy_grid=x, nmesh=nmesh)
 
     plt.plot(x, G_bar)
     plt.xticks(ticks=ew, labels=["E0", "E1"])
     plt.xlabel(r"$E$")
     plt.ylabel(r"$\bar{G}$")
-    plt.savefig("figures/G_bar.png", dpi=300)
+    #plt.savefig("figures/G_bar.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":
     test_measure_Xj_1q()
     test_measure_Yj_1q()
     test_eval_acdf_single_sample()
-    test_adcf_kernel_1q()
+    test_adcf_kernel()
