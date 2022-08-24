@@ -115,7 +115,6 @@ def test_approx_heaviside_from_convol():
     plt.show()
 
 def compare_aheaviside():
-
     nmesh = 80
     d = 40
     delt = 0.2

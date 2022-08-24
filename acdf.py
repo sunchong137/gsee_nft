@@ -5,14 +5,14 @@ import one_qubit_circ
 pi = np.pi 
 
 
-def measure_Xj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
+def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     '''
     Measure the real part of Tr[\rho exp(-i j tau H)]
     One qubit case.
     Args:
         input_state_vector: vector, initial state
         hamiltonian: matrix, Hamiltonian
-        j: int, parameter sampled
+        j_val: int, parameter sampled
         energy_rescalor: float, rescaling factor of the Hamiltonian (tau)
     returns:
         An int number to be either 1 or -1.
@@ -20,12 +20,12 @@ def measure_Xj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
     if energy_rescalor is None:
         energy_rescalor = helpers.rescale_hamiltonian_slow(hamiltonian)
 
-    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j, id="X")
+    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j_val, id="X")
     ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
     Xj = -1. * (2 * ancilla_output - 1) # 0 -> 1, 1 -> -1
     return Xj
 
-def measure_Yj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
+def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     '''
     Measure the imaginary part of Tr[\rho exp(-i k tau H)]
     One qubit case.
@@ -33,26 +33,25 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
     if energy_rescalor is None:
         energy_rescalor = helpers.rescale_hamiltonian_slow(hamiltonian)
 
-    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j, id="Y")
+    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y")
     ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
     Yj = -1. * (2 * ancilla_output - 1) # 0 -> 1, 1 -> -1
     return Yj
     
-def eval_G(x, j, Zj, ang_j):
+def eval_acdf_single_sample(energy_grids, j_val, Zj, angle_j):
     '''
-    Evaluate the G_function at points stored in x.
+    Evaluate the G_function at points stored in x - energy grids.
     G = F_tot * (Xj + iYj) * exp[i (ang_j + j * x)]
     Args:
-        x - points at which the G function is evaluated.
+        energy_grids - points at which the G function is evaluated.
         F_tot - sum of the norms of DFT coeffs of the approximate Heaviside function.
-        j - int 
-        Xj - a number (+-1)
-        Yj - a number (+-1)
-        ang_j - a number (angle)
+        j_val - int 
+        Zj -  a complex number that can be (+- 1 +- 1j)
+        angle_j - a number (angle)
     Returns:
         1D array of the size of x.
     '''
-    G = Zj * np.exp(1.j * (ang_j + j * x))
+    G = Zj * np.exp(1.j * (angle_j + j_val * energy_grids))
     return G
 
 def sampler(Ns, d, delt, state, ham, tau=None, nmesh=200):
@@ -128,7 +127,7 @@ def adcf_kernel_1q(d, Fj, j_samp, Z_samp, x=None, nmesh=200):
     for i in range(Ns):
         j, Zj = j_samp[i], Z_samp[i]
         ang_j = Fj_angle[j + d] 
-        G = eval_G(x, j, Zj, ang_j)
+        G = eval_acdf_single_sample(x, j, Zj, ang_j)
         G_samp += G
 
     Fj_abs = np.abs(Fj)

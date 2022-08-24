@@ -34,7 +34,7 @@ def test_measure_Yj_1q():
         Y.append(measure_Yj_1q(state, ham, j))
     print(Y)
 
-def test_eval_G():
+def test_eval_acdf_single_sample():
     x = np.linspace(-pi/3, pi/3, 100)
     F_tot = 2.0
     j = 2
@@ -42,7 +42,7 @@ def test_eval_G():
     Yj = -1.0
     Zj = Xj + 1.j*Yj
     ang_j = 0.1
-    G = eval_G(x, j, Zj, ang_j)
+    G = eval_acdf_single_sample(x, j, Zj, ang_j)
     print(G.shape)
 
 def test_adcf_kernel_1q():
@@ -77,5 +77,5 @@ def test_adcf_kernel_1q():
 if __name__ == "__main__":
     test_measure_Xj_1q()
     test_measure_Yj_1q()
-    test_eval_G()
+    test_eval_acdf_single_sample()
     test_adcf_kernel_1q()
