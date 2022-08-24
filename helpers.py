@@ -8,22 +8,21 @@ from scipy import signal
 
 pi = np.pi
 
-def dft_aheaviside(d, delt, k, nmesh=100):
+def dft_coeffs_approx_heaviside(d, delt, k, nmesh=100):
     '''
     Evaluate the Fourier coefficients the approximate heaviside function.
     '''
-    Mk = dft_smear_dirac(d, delt, k, nmesh)
-    Hk = dft_heaviside(k)
+    Mk = dft_coeffs_smear_dirac(d, delt, k, nmesh)
+    Hk = dft_coeffs_heaviside(k)
     Fk = np.sqrt(2 * pi) * Mk * Hk
     return Fk
 
-
-def aheaviside_ft(d, delt, x):
+def approx_heaviside_from_dft(d, delt, x):
     '''
     Evaluate the approximate Heaviside at x.
     '''
     k = np.arange(-d, d+1)
-    Fk = dft_aheaviside(d, delt, k, nmesh=200)
+    Fk = dft_coeffs_approx_heaviside(d, delt, k, nmesh=200)
     lk = 2 * d + 1
     lx = len(x)
     F = np.dot(Fk, np.exp(1.j * np.kron(k, x).reshape(lk, lx))) / np.sqrt(2 * pi)
@@ -32,19 +31,17 @@ def aheaviside_ft(d, delt, x):
     #     F = np.dot(Fk, np.exp(1.j * np.kron(k, x))) / np.sqrt(2 * pi)
     #except:
     #    F = np.dot(Fk, np.exp(1.j * k * x)) / np.sqrt(2 * pi)
-
     return F
 
-def aheaviside_convol(d, delt, nmesh=200):
+def approx_heaviside_from_convol(d, delt, nmesh=200):
     x = np.linspace(-pi, pi, nmesh+1, endpoint=True)
-    M = smear_dirac(d, delt, nmesh)
+    M = eval_smear_dirac(d, delt, nmesh)
     H = heaviside(nmesh)
     F = np.convolve(M, H, mode="same")
     #F = signal.fftconvolve(M, H, mode="same")
     return F
 
-
-def chebyshev_slow(x, d):
+def eval_chebyshev_slow(x, d):
     '''
     Evaluating the d-th order of Chebyshev polynomial of the first kind 
     based on the recursive relation. 
@@ -70,7 +67,7 @@ def chebyshev_slow(x, d):
         t1 = t.copy()
     return t
 
-def smear_dirac(d, delt, nmesh, thr=1e-5):
+def eval_smear_dirac(d, delt, nmesh, thr=1e-5):
     '''
     Evaluate smear Dirac delta function in Lemma 5 at [-pi, pi].
     Args:
@@ -98,7 +95,7 @@ def heaviside(nmesh):
 
     return H
 
-def dft_slow(y, k, x=None):
+def eval_dft_coeffs_slow(y, k, x=None):
     '''
     Slow version of discrete Fourier transform. 
     Compare to scipy.fft.fft()
@@ -128,16 +125,15 @@ def dft_slow(y, k, x=None):
     
     return yk
 
-
-def dft_smear_dirac(d, delt, k, nmesh, thr=1e-5):
+def dft_coeffs_smear_dirac(d, delt, k, nmesh, thr=1e-5):
     '''
     Fourier transform of the smear dirac function.
     '''
-    Mx = smear_dirac(d, delt, nmesh, thr=thr)
-    Mk = dft_slow(Mx, k)
+    Mx = eval_smear_dirac(d, delt, nmesh, thr=thr)
+    Mk = eval_dft_coeffs_slow(Mx, k)
     return Mk
 
-def dft_heaviside(k):
+def dft_coeffs_heaviside(k):
     '''
     FFT of the periodic Heaviside function.
     Args:
@@ -171,7 +167,7 @@ def dft_heaviside(k):
 
     return Hk
 
-def rescale_ham_slow(ham, bound=pi/3):
+def rescale_hamiltonian_slow(ham, bound=pi/3):
     '''
     Rescaling the hamiltonian, returns the rescaling factor tau.
     Suppose we can diagonalize the Hamiltonian.
@@ -185,8 +181,6 @@ def rescale_ham_slow(ham, bound=pi/3):
     tau = bound / max(abs(ew[0]), abs(ew[-1]))
 
     return tau
-
-
 
 
 if __name__ == "__main__":
