@@ -26,7 +26,7 @@ def main_circuit_1q(state, ham, j, tau=None, id="X"):
         The entangled state of the ancilla qubit and state qubit.
     '''
     if tau is None:
-        tau = helpers.rescale_ham_slow(ham)
+        tau = helpers.rescale_hamiltonian_slow(ham)
 
     # apply Hadamard gate onto ancilla first
     ancilla = np.array([1, 0])

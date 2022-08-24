@@ -4,39 +4,38 @@ import one_qubit_circ
 
 pi = np.pi 
 
-# TODO absorb tau into ham.
 
-def measure_Xj_1q(state, ham, j, tau=None):
+def measure_Xj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
     '''
-    Measure the real part of Tr[\rho exp(-i k tau H)]
+    Measure the real part of Tr[\rho exp(-i j tau H)]
     One qubit case.
     Args:
-        state: initial state
-        ham: Hamiltonian
-        j: parameter sampled
-        tau: rescaling factor of the Hamiltonian
+        input_state_vector: vector, initial state
+        hamiltonian: matrix, Hamiltonian
+        j: int, parameter sampled
+        energy_rescalor: float, rescaling factor of the Hamiltonian (tau)
     returns:
-        a number to be either 1 or -1.
+        An int number to be either 1 or -1.
     '''
-    if tau is None:
-        tau = helpers.rescale_ham_slow(ham)
+    if energy_rescalor is None:
+        energy_rescalor = helpers.rescale_hamiltonian_slow(hamiltonian)
 
-    full_state = one_qubit_circ.main_circuit_1q(state, ham, tau, j, id="X")
-    _Xj = one_qubit_circ.measure_ancilla(full_state)
-    Xj = -1. * (2 * _Xj - 1) # 0 -> 1, 1 -> -1
+    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j, id="X")
+    ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
+    Xj = -1. * (2 * ancilla_output - 1) # 0 -> 1, 1 -> -1
     return Xj
 
-def measure_Yj_1q(state, ham, j, tau=None):
+def measure_Yj_1q(input_state_vector, hamiltonian, j, energy_rescalor=None):
     '''
     Measure the imaginary part of Tr[\rho exp(-i k tau H)]
     One qubit case.
     '''
-    if tau is None:
-        tau = helpers.rescale_ham_slow(ham)
+    if energy_rescalor is None:
+        energy_rescalor = helpers.rescale_hamiltonian_slow(hamiltonian)
 
-    full_state = one_qubit_circ.main_circuit_1q(state, ham, tau, j, id="Y")
-    _Yj = one_qubit_circ.measure_ancilla(full_state)
-    Yj = -1. * (2 * _Yj - 1) # 0 -> 1, 1 -> -1
+    full_state_vector = one_qubit_circ.main_circuit_1q(input_state_vector, hamiltonian, energy_rescalor, j, id="Y")
+    ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
+    Yj = -1. * (2 * ancilla_output - 1) # 0 -> 1, 1 -> -1
     return Yj
     
 def eval_G(x, j, Zj, ang_j):
@@ -75,7 +74,7 @@ def sampler(Ns, d, delt, state, ham, tau=None, nmesh=200):
     '''
     # generate Fj Pr(k = j) = |Fj| / \sum_j |Fj|
     j_all = np.arange(-d, d+1, 1)
-    Fj = helpers.dft_aheaviside(d, delt, j_all, nmesh)
+    Fj = helpers.dft_coeffs_approx_heaviside(d, delt, j_all, nmesh)
     Fj_abs = np.abs(Fj)
 
     # evaluate probability distribution Pr(J = j) = |Fj| / \sum_j |Fj|

@@ -75,8 +75,7 @@ def test_adcf_kernel_1q():
     plt.show()
 
 if __name__ == "__main__":
-    #test_gen_prob_Jk()
-    #test_measure_Xj_1q()
-    #test_measure_Yj_1q()
-    #test_eval_G()
+    test_measure_Xj_1q()
+    test_measure_Yj_1q()
+    test_eval_G()
     test_adcf_kernel_1q()
