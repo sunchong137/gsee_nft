@@ -1,9 +1,8 @@
 import numpy as np
-import helpers
-import one_qubit_circ
+from gsee import helpers
+from gsee import one_qubit_circ
 
 pi = np.pi 
-
 
 def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     '''

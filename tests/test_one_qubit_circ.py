@@ -1,7 +1,5 @@
-import sys
-sys.path.append("../")
-from one_qubit_circ import *
-import helpers
+from gsee.one_qubit_circ import *
+from gsee import helpers
 import numpy as np
 import time
 

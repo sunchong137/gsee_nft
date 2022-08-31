@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import linalg as sl
 import random
-import helpers
+from gsee import helpers
 
 # Define single-qubit gates
 X = np.array([[0., 1.], [1., 0.]])

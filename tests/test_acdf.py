@@ -1,6 +1,4 @@
-import sys
-sys.path.append("../")
-from acdf import *
+from gsee.acdf import *
 import numpy as np
 from matplotlib import pyplot as plt
 

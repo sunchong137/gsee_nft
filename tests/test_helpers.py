@@ -1,9 +1,6 @@
-import sys
-sys.path.append('../')
-from helpers import *
+from gsee.helpers import *
 from matplotlib import pyplot as plt
 from scipy.special import eval_chebyt
-#from scipy import fft
 import time
 
 # The following tests are not unit tests, they are more intuitive...

@@ -1,9 +1,5 @@
-from asyncio import base_tasks
-import numpy
-import sys
-sys.path.append("../")
-from binary_search import *
-from acdf import *
+from gsee.binary_search import *
+from gsee.acdf import *
 
 def test_bsearch_ground_state():
     # set the parameters
