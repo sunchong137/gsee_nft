@@ -142,6 +142,7 @@ def dft_coeffs_heaviside(k):
         complex number or array of complex number.
     '''
     try:
+        np.seterr(divide='ignore', invalid='ignore')
         lk = len(k)
         Hk = np.zeros(lk)
         Hk = -2.j * (k % 2) / (np.sqrt(2 * pi) * k) # complain when k = 0
