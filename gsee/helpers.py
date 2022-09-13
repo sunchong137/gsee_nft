@@ -3,14 +3,19 @@ from scipy.special import eval_chebyt
 from scipy import integrate
 
 
-def dft_coeffs_approx_heaviside(d, delt, k, nmesh=100):
+def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_order, nmesh=100):
     """
     Evaluate the Fourier coefficients the approximate heaviside function.
+    Args:
+        max_dft_order       : int, cutoff of the DFT expansion (d in the paper).
+        rescaled_energy_acc : float, energy accuracy * tau (delta in the paper).  
+        dft_order           : int or array of int, the order(s) at which the coeffcients are evaluated (j in the paper)
+        nmesh               : number of points to construct the smear Dirac function.
     """
-    Mk = dft_coeffs_smear_dirac(d, delt, k, nmesh)
-    Hk = dft_coeffs_heaviside(k)
-    Fk = np.sqrt(2 * np.pi) * Mk * Hk
-    return Fk
+    dft_smear_dirac_k = dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_order, nmesh)
+    dft_heaviside_k = dft_coeffs_heaviside(dft_order)
+    dft_approx_heaviside_k = np.sqrt(2 * np.pi) * dft_smear_dirac_k * dft_heaviside_k
+    return dft_approx_heaviside_k
 
 
 def approx_heaviside_from_dft(d, delt, x):
@@ -29,38 +34,11 @@ def approx_heaviside_from_dft(d, delt, x):
 def approx_heaviside_from_convol(d, delt, nmesh=200):
     x = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
     M = eval_smear_dirac(d, delt, nmesh)
-    H = heaviside(nmesh)
+    H = _gen_heaviside(nmesh)
     F = np.convolve(M, H, mode="same")
     # F = signal.fftconvolve(M, H, mode="same")
     return F
-
-
-def eval_chebyshev_slow(x, d):
-    """
-    Evaluating the d-th order of Chebyshev polynomial of the first kind
-    based on the recursive relation.
-    Compare to scipy.special.eval_chebyt()
-    Args:
-        x: 1d array of N points at which the polynomials are evaluated.
-        d: up to what order to return.
-    Return:
-        1d array of N points of T(x) values.
-    """
-    lx = len(x)
-    t0 = np.ones(lx)
-    t1 = np.copy(x)
-    if d < 2:
-        if d == 1:
-            return t1
-        else:
-            return t0
-
-    for i in range(d - 1):
-        t = 2 * x * t1 - t0
-        t0 = t1.copy()
-        t1 = t.copy()
-    return t
-
+    
 
 def eval_smear_dirac(d, delt, nmesh, thr=1e-5):
     """
@@ -79,16 +57,6 @@ def eval_smear_dirac(d, delt, nmesh, thr=1e-5):
     M /= integrate.simpson(M, x)
 
     return M
-
-
-def heaviside(nmesh):
-    """
-    Heaviside function from [-pi, pi]
-    """
-    H = np.ones(nmesh + 1)
-    H[: int(nmesh // 2)] *= 0
-
-    return H
 
 
 def eval_dft_coeffs_slow(y, k, x=None):
@@ -121,52 +89,62 @@ def eval_dft_coeffs_slow(y, k, x=None):
     return yk
 
 
-def dft_coeffs_smear_dirac(d, delt, k, nmesh, thr=1e-5):
+def dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_order, nmesh, thr=1e-5):
     """
     Fourier transform of the smear dirac function.
     """
-    Mx = eval_smear_dirac(d, delt, nmesh, thr=thr)
-    Mk = eval_dft_coeffs_slow(Mx, k)
-    return Mk
+    smear_dirac_x = eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh, thr=thr)
+    dft_smear_dirac_k = eval_dft_coeffs_slow(smear_dirac_x, dft_order)
+    return dft_smear_dirac_k
 
 
-def dft_coeffs_heaviside(k):
+def dft_coeffs_heaviside(dft_order):
     """
     FFT of the periodic Heaviside function.
     Args:
-        k: int or array of int.
+        dft_order: int or array of int.
     Returns:
         complex number or array of complex number.
     """
     try:
         np.seterr(divide="ignore", invalid="ignore")
-        lk = len(k)
-        Hk = np.zeros(lk)
-        Hk = -2.0j * (k % 2) / (np.sqrt(2 * np.pi) * k)  # complain when k = 0
-        Hk[np.where(k == 0)] = np.sqrt(np.pi / 2.0)
+        num_order = len(dft_order)
+        dft_heaviside_k = np.zeros(num_order)
+        dft_heaviside_k = -2.0j * (dft_order % 2) / (np.sqrt(2 * np.pi) * dft_order)  # complain when k = 0
+        dft_heaviside_k[np.where(dft_order == 0)] = np.sqrt(np.pi / 2.0)
 
     except:
-        if k == 0:
-            Hk = np.sqrt(np.pi / 2.0)
-        elif k % 2 == 0:
-            Hk = 0
+        if dft_order == 0:
+            dft_heaviside_k = np.sqrt(np.pi / 2.0)
+        elif dft_order % 2 == 0:
+            dft_heaviside_k = 0
         else:
-            Hk = -2.0j / (np.sqrt(2 * np.pi) * k)
+            dft_heaviside_k = -2.0j / (np.sqrt(2 * np.pi) * dft_order)
 
-    return Hk
+    return dft_heaviside_k
 
 
-def rescale_hamiltonian_slow(ham, bound=np.pi / 3):
+def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
     """
     Rescaling the hamiltonian, returns the rescaling factor tau.
     Suppose we can diagonalize the Hamiltonian.
     Args:
-        ham - the array of the Hamiltonian
-        bound - the upper limit of tau * ||ham||
+        hamiltonian : 2D array, the matrix representation of the Hamiltonian
+        bound       : the targeted upper limit of the spectrum of the Hamiltonian
     Returns:
-        a double number - tau
+        Float (tau in the paper).
     """
-    ew, _ = np.linalg.eigh(ham)
-    tau = bound / max(abs(ew[0]), abs(ew[-1]))
+    energies, _ = np.linalg.eigh(hamiltonian)
+    energy_rescaling_factor = bound / max(abs(energies[0]), abs(energies[-1]))
 
-    return tau
+    return energy_rescaling_factor
+
+
+def _gen_heaviside(nmesh):
+    """
+    Return the Heaviside function in an array of size (nmesh + 1).
+    """
+    heaviside_array = np.ones(nmesh + 1)
+    heaviside_array[: int(nmesh // 2)] *= 0
+
+    return heaviside_array

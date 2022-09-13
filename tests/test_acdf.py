@@ -1,4 +1,5 @@
 from gsee.acdf import *
+from gsee.helpers import *
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -58,6 +59,10 @@ def test_acdf_kernel():
     ham = np.random.rand(2, 2)
     ham = 0.5 * (ham + ham.T)
 
+    # rescale hamiltonian
+    tau = rescale_hamiltonian_spectrum(ham, bound=np.pi/3)
+    ham *=  tau
+
     ew, ev = np.linalg.eigh(ham)
     state = ev[0] + np.random.rand(2) * 0.5  # make a good initial guess
     state /= np.linalg.norm(state)
@@ -66,7 +71,7 @@ def test_acdf_kernel():
     print("The overlap between the initial state and the ground state: {}".format(p0))
     # generate a random initial state
     Fj, j_samp = classical_sampler(Ns, d, delt, nmesh=nmesh)
-    Z_samp = quantum_sampler(j_samp, state, ham, energy_rescalor=None)
+    Z_samp = quantum_sampler(j_samp, state, ham, energy_rescalor=tau)
 
     G_bar = acdf_kernel(d, Fj, j_samp, Z_samp, energy_grid=x, nmesh=nmesh)
 
