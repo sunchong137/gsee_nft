@@ -1,12 +1,6 @@
-from operator import mod
-from tkinter.font import names
 import numpy as np
 from scipy.special import eval_chebyt
 from scipy import integrate
-from scipy import fft
-from scipy import signal
-
-pi = np.pi
 
 
 def dft_coeffs_approx_heaviside(d, delt, k, nmesh=100):
@@ -15,7 +9,7 @@ def dft_coeffs_approx_heaviside(d, delt, k, nmesh=100):
     """
     Mk = dft_coeffs_smear_dirac(d, delt, k, nmesh)
     Hk = dft_coeffs_heaviside(k)
-    Fk = np.sqrt(2 * pi) * Mk * Hk
+    Fk = np.sqrt(2 * np.pi) * Mk * Hk
     return Fk
 
 
@@ -27,17 +21,13 @@ def approx_heaviside_from_dft(d, delt, x):
     Fk = dft_coeffs_approx_heaviside(d, delt, k, nmesh=200)
     lk = 2 * d + 1
     lx = len(x)
-    F = np.dot(Fk, np.exp(1.0j * np.kron(k, x).reshape(lk, lx))) / np.sqrt(2 * pi)
-    # try: # x is an array
-    #     lx = len(x)
-    #     F = np.dot(Fk, np.exp(1.j * np.kron(k, x))) / np.sqrt(2 * pi)
-    # except:
-    #    F = np.dot(Fk, np.exp(1.j * k * x)) / np.sqrt(2 * pi)
+    F = np.dot(Fk, np.exp(1.0j * np.kron(k, x).reshape(lk, lx))) / np.sqrt(2 * np.pi)
+
     return F
 
 
 def approx_heaviside_from_convol(d, delt, nmesh=200):
-    x = np.linspace(-pi, pi, nmesh + 1, endpoint=True)
+    x = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
     M = eval_smear_dirac(d, delt, nmesh)
     H = heaviside(nmesh)
     F = np.convolve(M, H, mode="same")
@@ -82,11 +72,10 @@ def eval_smear_dirac(d, delt, nmesh, thr=1e-5):
     Returns:
         1d array of the function values.
     """
-    assert abs(delt - pi) > thr and abs(delt + pi) > thr  # no overflow!
-    x = np.linspace(-pi, pi, nmesh + 1, endpoint=True)
+    assert abs(delt - np.pi) > thr and abs(delt + np.pi) > thr  # no overflow!
+    x = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
     x_n = 1 + 2 * (np.cos(x) - np.cos(delt)) / (1 + np.cos(delt))
     M = eval_chebyt(d, x_n)
-    # M /= (np.sum(M[:-1]) * 2 * pi / nmesh) # normalization, the integration is done
     M /= integrate.simpson(M, x)
 
     return M
@@ -105,7 +94,6 @@ def heaviside(nmesh):
 def eval_dft_coeffs_slow(y, k, x=None):
     """
     Slow version of discrete Fourier transform.
-    Compare to scipy.fft.fft()
     Args:
         x: original space points in [-pi, pi]
         y: f(x)
@@ -115,20 +103,20 @@ def eval_dft_coeffs_slow(y, k, x=None):
     """
     lx = len(y)
     if x is None:
-        x = np.linspace(-pi, pi, lx)
+        x = np.linspace(-np.pi, np.pi, lx)
     try:  # k is provided as an array
         lk = len(k)
         # lx = len(x)
         n = np.exp(-1.0j * np.einsum("i, j -> ij", k, x))
         n = np.einsum("i, ji -> ji", y, n)
         # x_n = np.kron(np.ones(lk), x).reshape(lk, lx)
-        yk = integrate.simpson(n, x) / np.sqrt(2 * pi)
+        yk = integrate.simpson(n, x) / np.sqrt(2 * np.pi)
         # print("k is an array!")
 
     except:
         # print("k is given as a number!")
         n = y * np.exp(-1.0j * k * x)
-        yk = integrate.simpson(n, x) / np.sqrt(2 * pi)
+        yk = integrate.simpson(n, x) / np.sqrt(2 * np.pi)
 
     return yk
 
@@ -154,31 +142,21 @@ def dft_coeffs_heaviside(k):
         np.seterr(divide="ignore", invalid="ignore")
         lk = len(k)
         Hk = np.zeros(lk)
-        Hk = -2.0j * (k % 2) / (np.sqrt(2 * pi) * k)  # complain when k = 0
-        Hk[np.where(k == 0)] = np.sqrt(pi / 2.0)
-    # try:
-    #     lk = len(k)
-    #     Hk = np.zeros(lk)
-    #     for i in range(lk):
-    #         if k[i] == 0:
-    #             Hk[i] = np.sqrt(pi / 2.)
-    #         elif k[i] % 2 == 0:
-    #             Hk[i] = 0
-    #         else:
-    #             Hk[i] = (-2.j / (np.sqrt(2 * pi) * k[i]))
+        Hk = -2.0j * (k % 2) / (np.sqrt(2 * np.pi) * k)  # complain when k = 0
+        Hk[np.where(k == 0)] = np.sqrt(np.pi / 2.0)
 
     except:
         if k == 0:
-            Hk = np.sqrt(pi / 2.0)
+            Hk = np.sqrt(np.pi / 2.0)
         elif k % 2 == 0:
             Hk = 0
         else:
-            Hk = -2.0j / (np.sqrt(2 * pi) * k)
+            Hk = -2.0j / (np.sqrt(2 * np.pi) * k)
 
     return Hk
 
 
-def rescale_hamiltonian_slow(ham, bound=pi / 3):
+def rescale_hamiltonian_slow(ham, bound=np.pi / 3):
     """
     Rescaling the hamiltonian, returns the rescaling factor tau.
     Suppose we can diagonalize the Hamiltonian.
@@ -192,9 +170,3 @@ def rescale_hamiltonian_slow(ham, bound=pi / 3):
     tau = bound / max(abs(ew[0]), abs(ew[-1]))
 
     return tau
-
-
-if __name__ == "__main__":
-    from matplotlib import pyplot as plt
-
-    print("done")

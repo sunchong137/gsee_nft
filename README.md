@@ -9,6 +9,7 @@ Installation
 * create a new conda environment (optional)
 
     conda create --name <env_name> --file requirements.txt
+
     conda activate <env_name>
 
 * install using setup.py

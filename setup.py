@@ -10,6 +10,16 @@ def read_requirements(fname):
         requirements = [line.strip() for line in lines]
     return requirements
 
+def get_version():
+    topdir = os.path.abspath(os.path.join(__file__, '..'))
+    with open(os.path.join(topdir, 'gsee', '__init__.py'), 'r') as f:
+        for line in f.readlines():
+            if line.startswith('__version__'):
+                delim = '"' if '"' in line else "'"
+                return line.split(delim)[1]
+    raise ValueError("Version string not found")
+VERSION = get_version()
+
 NAME = 'gsee'
 AUTHOR = 'Chong Sun'
 DESCRIPTION = "A python package to perform ground state energy estimation with the algorithm proposed by Lin & Tong."
@@ -18,6 +28,7 @@ REQUIREMENTS = read_requirements('requirements.txt')
 
 setup(
     name=NAME,
+    version=VERSION,
     description=DESCRIPTION,
     author_email=AUTHOR_EMAIL,
     install_requires=REQUIREMENTS,
