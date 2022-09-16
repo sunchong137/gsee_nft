@@ -9,10 +9,10 @@ def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grid, nm
     Args:
         max_dft_order       : int, cutoff of the DFT expansion (d in the paper).
         rescaled_energy_acc : float, energy accuracy * tau (delta in the paper).  
-        dft_grid           : int or array of int, the order(s) at which the coeffcients are evaluated (j in the paper)
+        dft_grid            : int or array of int, the order(s) at which the coeffcients are evaluated (j in the paper)
         nmesh               : number of points to construct the smear Dirac function.
     """
-    dft_smear_dirac_k = dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grid, nmesh)
+    dft_smear_dirac_k = _eval_dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grid, nmesh)
     dft_heaviside_k = dft_coeffs_heaviside(dft_grid)
     dft_approx_heaviside_k = np.sqrt(2 * np.pi) * dft_smear_dirac_k * dft_heaviside_k
     return dft_approx_heaviside_k
@@ -36,65 +36,65 @@ def approx_heaviside_from_convol(max_dft_order, rescaled_energy_acc, nmesh=200):
     Approximate Heaviside function from 
     '''
     # x = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
-    smear_dirac = eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh)
+    smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh=nmesh, grids=None)
     heaviside = _gen_heaviside(nmesh)
     approx_heaviside = np.convolve(smear_dirac, heaviside, mode="same")
 
     return approx_heaviside
     
 
-def eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh, thr=1e-5):
+def _eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh=None, grids=None, thr=1e-5):
     """
     Evaluate smear Dirac delta function in Lemma 5 at [-pi, pi].
     Args:
-        max_dft_order: degree of Chebyshev polynomials
-        rescaled_energy_acc: parameter
-        nmesh: number of mesh points (assume uniform grid for now)
+        max_dft_order          : degree of Chebyshev polynomials
+        rescaled_energy_acc    : the energy accuracy times the rescalor, delta in the paper.
+        nmesh                  : number of mesh points (assume uniform grid for now)
     Returns:
         1d array of the function values.
     """
     assert abs(rescaled_energy_acc - np.pi) > thr and abs(rescaled_energy_acc + np.pi) > thr  # no overflow!
-    energy_grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
-    energy_grids_n = 1 + 2 * (np.cos(energy_grids) - np.cos(rescaled_energy_acc)) / (1 + np.cos(rescaled_energy_acc))
-    smear_dirac = eval_chebyt(max_dft_order, energy_grids_n)
-    smear_dirac /= integrate.simpson(smear_dirac, energy_grids)
+    if grids is None:    
+        assert nmesh is not None
+        grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
+        
+    grids_n = 1 + 2 * (np.cos(grids) - np.cos(rescaled_energy_acc)) / (1 + np.cos(rescaled_energy_acc))
+    smear_dirac = eval_chebyt(max_dft_order, grids_n)
+    smear_dirac /= integrate.simpson(smear_dirac, grids)
 
     return smear_dirac
 
-
-def eval_dft_coeffs_slow(func, dft_grid, grid=None):
-    """
-    Slow version of discrete Fourier transform.
-    Args:
-        func : the function to be transformed
-        grid : original space points in [-pi, pi]
-        ft_order : reciprical space point(s), 1d array
-    Returns:
-        Fourier coefficients of f(x) at k.
-    """
-    len_grid = len(func)
-    if grid is None:
-        grid = np.linspace(-np.pi, np.pi, len_grid)
-    try:  # k is provided as an array
-        # len_dft_grid = len(dft_grid)
-        integrand = np.exp(-1.0j * np.einsum("i, j -> ij", dft_grid, grid))
-        integrand = np.einsum("i, ji -> ji", func, integrand)
-        dft_func = integrate.simpson(integrand, grid) / np.sqrt(2 * np.pi)
-
-    except:
-        integrand = func * np.exp(-1.0j * dft_grid * grid)
-        dft_func = integrate.simpson(integrand, grid) / np.sqrt(2 * np.pi)
-
-    return dft_func
-
-
-def dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grid, nmesh, thr=1e-5):
+def _eval_dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grids, nmesh, thr=1e-5):
     """
     Fourier transform of the smear dirac function.
     """
-    smear_dirac_x = eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh, thr=thr)
-    dft_smear_dirac_k = eval_dft_coeffs_slow(smear_dirac_x, dft_grid)
-    return dft_smear_dirac_k
+    grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
+    smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=grids, thr=thr)
+    dft_smear_dirac = _eval_dft_coeffs_slow(smear_dirac, dft_grids, grids)
+    return dft_smear_dirac
+
+
+def _eval_dft_coeffs_slow(vals_func, dft_grids, grids):
+    """
+    Slow version of discrete Fourier transform.
+    Args:
+        vals_func       : the array of the values of function f(x) to be transformed
+        dft_grid   : the grid for the recipracal space
+        grid       : original space points in [-pi, pi]
+    Returns:
+        Fourier coefficients of f(x) at dft_grid.
+    """
+    
+    try:  
+        integrand = np.exp(-1.0j * np.einsum("i, j -> ij", dft_grids, grids))
+        integrand = np.einsum("i, ji -> ji", vals_func, integrand)
+        dft_func = integrate.simpson(integrand, grids) / np.sqrt(2 * np.pi)
+
+    except:
+        integrand = vals_func * np.exp(-1.0j * dft_grids * grids)
+        dft_func = integrate.simpson(integrand, grids) / np.sqrt(2 * np.pi)
+
+    return dft_func
 
 
 def dft_coeffs_heaviside(dft_grid):

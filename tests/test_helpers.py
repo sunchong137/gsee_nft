@@ -1,60 +1,65 @@
-from gsee.helpers import *
+import numpy as np
+from gsee import helpers
 from matplotlib import pyplot as plt
 from scipy.special import eval_chebyt
+from scipy import integrate
 import time
 
 class TestHelpers():
+
+
+    def test_eval_dft_coeffs_slow(self):
+        # test on sin and cosine functions
+        w = 1.0
+        grids = np.linspace(-np.pi, np.pi, 1000)
+        def sin(x):
+            return np.sin(w * x)
+        fx = sin(grids)
+        def dft_sin(k):
+            if k == w:
+                tmp1 = np.pi
+            else:
+                tmp1 = np.sin(np.pi * (w - k)) / (w - k)
+            if k == -w:
+                tmp2 = np.pi
+            else:
+                tmp2 = np.sin(np.pi*(w + k)) /(w + k)
+            return -1.j / np.sqrt(2 * np.pi) * (tmp1 - tmp2)
+        dft_grids = np.array([-2*w, -w, 0, w, -2*w])
+        dft_f = helpers._eval_dft_coeffs_slow(fx, dft_grids, grids)
+        dft_reference = []
+        for k in dft_grids:
+            dft_reference.append(dft_sin(k))
+        
+        diff = np.linalg.norm(dft_f - dft_reference)
+        assert np.linalg.norm(diff) < 1e-5
+
     def test_eval_smear_dirac(self):
         nmesh = 200
         d = 20
         delt = 0.2
         x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        M = eval_smear_dirac(d, delt, nmesh)
-        d2 = 40
-        M2 = eval_smear_dirac(d2, delt, nmesh)
-        plt.plot(x, M, c='g', label=r"$d=20$")
-        plt.plot(x, M2, '--', c='r', label=r"$d=40$")
-        plt.legend()
-        plt.xlabel(r"$x$")
-        plt.ylabel(r"$M_{d, \delta}$")
-        #plt.savefig("figures/smear_dirac.png", dpi=300)
-
-    def test_eval_dft_coeffs_slow(self):
-        nmesh = 10
-        d = 20
-        delt = 0.2
-        x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        M = eval_smear_dirac(d, delt, nmesh)
-        k = np.arange(-nmesh,nmesh+1,1)
-        k = x.copy()
-        Mk = eval_dft_coeffs_slow(M, k)
-        #print(Mk)
-        Mk2 = np.zeros(k.shape[0], dtype=np.complex128)
-        for i in range(len(k)):
-            Mk2[i] = eval_dft_coeffs_slow(M, k[i])
-        #print(Mk2)
-        #print(np.linalg.norm(Mk - Mk2))
-        # Mks = fft.fftshift(M)/np.sqrt(2*np.pi)
-        # plt.plot(x, Mks.real, label="scipy")
-        # plt.plot(k, Mk.real, label="slow")
-        # plt.legend()
-        # plt.show()
-
+        M = helpers._eval_smear_dirac(d, delt, nmesh)
+        
+        # make sure that the integration is 1
+        area = integrate.simpson(M, x)
+        assert(abs(area - 1) < 1e-5)
+                
     def test_dft_coeffs_smear_dirac(self):
         nmesh = 10
         d = 20
         delt = 0.2
         k = np.arange(-nmesh,nmesh+1,1)
-        Mk = dft_coeffs_smear_dirac(d, delt, k, nmesh)
+        Mk = helpers._eval_dft_coeffs_smear_dirac(d, delt, k, nmesh)
         print(Mk)
 
     def test_dft_coeffs_heaviside(self):
         k = np.arange(-4, 5)
-        Hk = dft_coeffs_heaviside(k)
+        Hk = helpers.dft_coeffs_heaviside(k)
         print(Hk)
         Hks = []
         for i in k:
-            Hks.append(dft_coeffs_heaviside(i))
+            Hks.append(helpers.dft_coeffs_heaviside(i))
         Hks = np.asarray(Hks)
         print(np.linalg.norm(Hks - Hk))
         print(k)
@@ -64,7 +69,7 @@ class TestHelpers():
         d = 20
         delt = 0.2
         k = np.arange(-nmesh,nmesh+1,1)
-        Fk = dft_coeffs_approx_heaviside(d, delt, k, nmesh)
+        Fk = helpers.dft_coeffs_approx_heaviside(d, delt, k, nmesh)
         print(Fk)
         
 
@@ -73,27 +78,27 @@ class TestHelpers():
         d = 20
         delt = 0.2
         x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F = approx_heaviside_from_dft(d, delt, x)
+        F = helpers.approx_heaviside_from_dft(d, delt, x)
         print(F)
         plt.plot(x, F)
-        plt.show()
+        # plt.show()
 
     def test_approx_heaviside_from_convol(self):
         nmesh = 40
         d = 20
         delt = 0.2
         x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F = approx_heaviside_from_convol(d, delt, nmesh)
+        F = helpers.approx_heaviside_from_convol(d, delt, nmesh)
         plt.plot(x, F)
-        plt.show()
+        # plt.show()
 
     def compare_aheaviside(self):
         nmesh = 80
         d = 40
         delt = 0.2
         x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F1 = approx_heaviside_from_convol(d, delt, nmesh)*(2*np.pi/(nmesh+1))
-        F2 = approx_heaviside_from_dft(d, delt, x)
+        F1 = helpers.approx_heaviside_from_convol(d, delt, nmesh)*(2*np.pi/(nmesh+1))
+        F2 = helpers.approx_heaviside_from_dft(d, delt, x)
         plt.plot(x, F1, label="convol")
         plt.plot(x, F2, '--', label="FT")
         plt.xlabel(r"$x$")
@@ -103,5 +108,9 @@ class TestHelpers():
 
     def test_rescale_hamiltonian_spectrum(self):
         ham = np.random.rand(4,4)
-        tau = rescale_hamiltonian_spectrum(ham)
+        tau = helpers.rescale_hamiltonian_spectrum(ham)
         print(tau)
+
+if __name__ == "__main__":
+    obj = TestHelpers()
+    obj.test_eval_dft_coeffs_slow()
