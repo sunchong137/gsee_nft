@@ -77,44 +77,16 @@ class TestHelpers():
         assert np.linalg.norm(ah_dft - ah_ref) < 1e-10
         
 
-    def test_approx_heaviside_from_dft(self):
-        nmesh = 40
-        d = 20
-        delt = 0.2
-        x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F = helpers.approx_heaviside_from_dft(d, delt, x)
-        print(F)
-        plt.plot(x, F)
-        # plt.show()
-
-    def test_approx_heaviside_from_convol(self):
-        nmesh = 40
-        d = 20
-        delt = 0.2
-        x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F = helpers.approx_heaviside_from_convol(d, delt, nmesh)
-        plt.plot(x, F)
-        # plt.show()
-
-    def compare_aheaviside(self):
-        nmesh = 80
-        d = 40
-        delt = 0.2
-        x = np.linspace(-np.pi, np.pi, nmesh+1, endpoint=True)
-        F1 = helpers.approx_heaviside_from_convol(d, delt, nmesh)*(2*np.pi/(nmesh+1))
-        F2 = helpers.approx_heaviside_from_dft(d, delt, x)
-        plt.plot(x, F1, label="convol")
-        plt.plot(x, F2, '--', label="FT")
-        plt.xlabel(r"$x$")
-        plt.ylabel(r"$F_{d, \delta}$")
-        plt.legend()
-        #plt.savefig("figures/aheaviside_compare.png", dpi=300)
-
     def test_rescale_hamiltonian_spectrum(self):
-        ham = np.random.rand(4,4)
+        bound = np.pi / 3 
+        ham = np.zeros((2, 2))
+        ham[0, 0] = -1
+        ham[1, 1] = 0.5
         tau = helpers.rescale_hamiltonian_spectrum(ham)
-        print(tau)
+        ref_tau = bound / 1
+        assert abs(tau - ref_tau) < 1e-10
 
 if __name__ == "__main__":
+    # to run a specific test
     obj = TestHelpers()
     obj.test_dft_coeffs_approx_heaviside()

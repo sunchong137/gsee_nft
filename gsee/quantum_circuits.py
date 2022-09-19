@@ -2,17 +2,9 @@ import numpy as np
 from scipy import linalg as sl
 import random
 from gsee import helpers
+from gsee import gates
 
-# Define single-qubit gates
-X = np.array([[0., 1.], [1., 0.]])
-Y = 1.j * np.array([[0., -1.], [1., 0.]])
-Z = np.array([[1., 0.], [0., -1.]])
-I  = np.eye(2) # identity gate
-Hd = np.array([[1., 1.], [1., -1.]])/np.sqrt(2) # Hadamard gate
-S = np.array([[1., 0.], [0., 1.j]]) # phase gate
-Sdag = np.array([[1., 0.], [0., -1.j]]) # S^\dag
 
-####### Main circuit #######
 def main_circuit_1q(state, ham, j, tau=None, id="X"):
     '''n circuit for the one qubit case.
     Main circuit. Eq.(1) in the paper
@@ -30,7 +22,7 @@ def main_circuit_1q(state, ham, j, tau=None, id="X"):
 
     # apply Hadamard gate onto ancilla first
     ancilla = np.array([1, 0])
-    ancilla = np.dot(Hd, ancilla)
+    ancilla = np.dot(gates.Hd, ancilla)
     full_state = np.kron(ancilla, state)
 
     # apply the controlled time evolution
@@ -39,14 +31,14 @@ def main_circuit_1q(state, ham, j, tau=None, id="X"):
     full_state = np.dot(c_expH, full_state)
 
     # apply W gate to ancilla
-    W = I
+    W = gates.I
     if id == 'Y':
-        W = Sdag
-    full_W = np.kron(W, I)
+        W = gates.Sdag
+    full_W = np.kron(W, gates.I)
     full_state = np.dot(full_W, full_state)
 
     # apply Hadamard gate to ancilla
-    full_Hd = np.kron(Hd, I)
+    full_Hd = np.kron(gates.Hd, gates.I)
     full_state = np.dot(full_Hd, full_state)
 
     return full_state
@@ -93,7 +85,7 @@ def control_op_1q(op):
 if __name__ == "__main__":
 
     # run control_op_1q
-    cnot = control_op_1q(X)
+    cnot = control_op_1q(gates.X)
     print(cnot)
     
     # run main_circuit_1qubit
@@ -104,7 +96,7 @@ if __name__ == "__main__":
     ew, ev = np.linalg.eigh(ham)
     tau = np.pi/(3 * max(abs(ew[0]), abs(ew[1])))
     j = 1
-    W = I
+    W = gates.I
     full_state = main_circuit_1q(state, ham, tau, j, W)
     print(full_state)
 

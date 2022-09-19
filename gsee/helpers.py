@@ -22,31 +22,24 @@ def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, n
     return dft_approx_heaviside_k
 
 
-def approx_heaviside_from_dft(max_dft_order, rescaled_energy_acc, energy_grids):
+def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
     """
-    Evaluate the approximate Heaviside at energy grid points.
+    Rescaling the hamiltonian, returns the rescaling factor tau.
+    Suppose we can diagonalize the Hamiltonian.
+    Args:
+        hamiltonian : 2D array, the matrix representation of the Hamiltonian
+        bound       : the targeted upper limit of the spectrum of the Hamiltonian
+    Returns:
+        Float (tau in the paper).
     """
-    dft_grids = np.arange(-max_dft_order, max_dft_order + 1)
-    dft_heaviside_k = dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, nmesh=200)
-    len_dft = 2 * max_dft_order + 1
-    len_energy = len(energy_grids)
-    approx_heaviside = np.dot(dft_heaviside_k, np.exp(1.0j * np.kron(dft_grids, energy_grids).reshape(len_dft, len_energy))) / np.sqrt(2 * np.pi)
+    energies, _ = np.linalg.eigh(hamiltonian)
+    energy_rescaling_factor = bound / max(abs(energies[0]), abs(energies[-1]))
 
-    return approx_heaviside
+    return energy_rescaling_factor
 
-
-def approx_heaviside_from_convol(max_dft_order, rescaled_energy_acc, nmesh=2000):
-    '''
-    Approximate Heaviside function from convolution of smear dirac function and periodic heaviside function.
-    '''
-    grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
-    smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh=nmesh, grids=grids)
-    heaviside = _gen_heaviside(grids=grids, nmesh=nmesh)
-    approx_heaviside = np.convolve(smear_dirac, heaviside, mode="same")
-
-    return approx_heaviside
-    
-
+#
+# The following functions are private and only called in this file.
+#
 def _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=None, nmesh=None, thr=1e-5):
     """
     Evaluate smear Dirac delta function in Lemma 5 at [-pi, pi].
@@ -130,22 +123,6 @@ def _eval_dft_coeffs_heaviside(dft_grids):
     return dft_heaviside_k
 
 
-def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
-    """
-    Rescaling the hamiltonian, returns the rescaling factor tau.
-    Suppose we can diagonalize the Hamiltonian.
-    Args:
-        hamiltonian : 2D array, the matrix representation of the Hamiltonian
-        bound       : the targeted upper limit of the spectrum of the Hamiltonian
-    Returns:
-        Float (tau in the paper).
-    """
-    energies, _ = np.linalg.eigh(hamiltonian)
-    energy_rescaling_factor = bound / max(abs(energies[0]), abs(energies[-1]))
-
-    return energy_rescaling_factor
-
-
 def _gen_heaviside(grids=None, nmesh=None):
     """
     Return the Heaviside function in an array of size (nmesh + 1).
@@ -160,3 +137,32 @@ def _gen_heaviside(grids=None, nmesh=None):
         heaviside_array[: int(nmesh // 2)] *= 0
 
     return heaviside_array
+
+#
+# The following two functions were not used anywhere, will keep them 
+# until I am sure they will never be used.
+#
+# def _approx_heaviside_from_dft(max_dft_order, rescaled_energy_acc, energy_grids):
+#     """
+#     Evaluate the approximate Heaviside at energy grid points.
+#     """
+#     dft_grids = np.arange(-max_dft_order, max_dft_order + 1)
+#     dft_heaviside_k = dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, nmesh=200)
+#     len_dft = 2 * max_dft_order + 1
+#     len_energy = len(energy_grids)
+#     approx_heaviside = np.dot(dft_heaviside_k, np.exp(1.0j * np.kron(dft_grids, energy_grids).reshape(len_dft, len_energy))) / np.sqrt(2 * np.pi)
+
+#     return approx_heaviside
+
+
+# def _approx_heaviside_from_convol(max_dft_order, rescaled_energy_acc, nmesh=2000):
+#     '''
+#     Approximate Heaviside function from convolution of smear dirac function and periodic heaviside function.
+#     '''
+#     grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
+#     smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, nmesh=nmesh, grids=grids)
+#     heaviside = _gen_heaviside(grids=grids, nmesh=nmesh)
+#     approx_heaviside = np.convolve(smear_dirac, heaviside, mode="same")
+
+#     return approx_heaviside
+    

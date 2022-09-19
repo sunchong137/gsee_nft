@@ -1,6 +1,6 @@
 import numpy as np
 from gsee import helpers
-from gsee import one_qubit_circ
+from gsee import quantum_circuits
 
 pi = np.pi
 
@@ -20,10 +20,10 @@ def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     if energy_rescalor is None:
         energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = one_qubit_circ.main_circuit_1q(
+    full_state_vector = quantum_circuits.main_circuit_1q(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="X"
     )
-    ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
+    ancilla_output = quantum_circuits.measure_ancilla(full_state_vector)
     Xj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
     return Xj
 
@@ -36,10 +36,10 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     if energy_rescalor is None:
         energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = one_qubit_circ.main_circuit_1q(
+    full_state_vector = quantum_circuits.main_circuit_1q(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
     )
-    ancilla_output = one_qubit_circ.measure_ancilla(full_state_vector)
+    ancilla_output = quantum_circuits.measure_ancilla(full_state_vector)
     Yj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
     return Yj
 

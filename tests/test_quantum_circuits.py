@@ -1,4 +1,4 @@
-from gsee.one_qubit_circ import *
+from gsee.quantum_circuits import *
 from gsee import helpers
 import numpy as np
 import time
