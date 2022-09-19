@@ -6,35 +6,6 @@ from matplotlib import pyplot as plt
 pi = np.pi
 
 
-def test_measure_Xj_1q():
-    # generate a random Hamiltonian
-    ham = np.random.rand(2, 2)
-    ham = 0.5 * (ham + ham.T)
-    # generate a random initial state
-    state = np.random.rand(2)
-    state /= np.linalg.norm(state)
-    j = 2
-    Ns = 100
-    X = []
-    for i in range(Ns):
-        X.append(measure_Xj_1q(state, ham, j))
-    print(X)
-
-
-def test_measure_Yj_1q():
-    # generate a random Hamiltonian
-    ham = np.random.rand(2, 2)
-    ham = 0.5 * (ham + ham.T)
-    # generate a random initial state
-    state = np.random.rand(2)
-    state /= np.linalg.norm(state)
-    j = 2
-    Ns = 100
-    Y = []
-    for i in range(Ns):
-        Y.append(measure_Yj_1q(state, ham, j))
-    print(Y)
-
 
 def test_eval_acdf_single_sample():
     x = np.linspace(-pi / 3, pi / 3, 100)
@@ -84,7 +55,5 @@ def test_acdf_kernel():
 
 
 if __name__ == "__main__":
-    test_measure_Xj_1q()
-    test_measure_Yj_1q()
     test_eval_acdf_single_sample()
     test_acdf_kernel()

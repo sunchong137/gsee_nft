@@ -69,6 +69,45 @@ def measure_ancilla(full_state):
         return 0
     else:
         return 1
+    
+def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
+    """
+    Measure the real part of Tr[\rho exp(-i j tau H)]
+    One qubit case.
+    Args:
+        input_state_vector: vector, initial state
+        hamiltonian: matrix, Hamiltonian
+        j_val: int, parameter sampled
+        energy_rescalor: float, rescaling factor of the Hamiltonian (tau)
+    returns:
+        An int number to be either 1 or -1.
+    """
+    if energy_rescalor is None:
+        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
+
+    full_state_vector = main_circuit_1q(
+        input_state_vector, hamiltonian, energy_rescalor, j_val, id="X"
+    )
+    ancilla_output = measure_ancilla(full_state_vector)
+    Xj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
+    return Xj
+
+
+def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
+    """
+    Measure the imaginary part of Tr[\rho exp(-i k tau H)]
+    One qubit case.
+    """
+    if energy_rescalor is None:
+        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
+
+    full_state_vector = main_circuit_1q(
+        input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
+    )
+    ancilla_output = measure_ancilla(full_state_vector)
+    Yj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
+    return Yj
+
 
 def control_op_1q(op):
     '''

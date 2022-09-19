@@ -6,6 +6,36 @@ import time
 X = np.array([[0., 1.], [1., 0.]])
 CNOT = np.array([[1,0,0,0],[0,1,0,0],[0,0,0,1],[0,0,1,0]])
 
+def test_measure_Xj_1q():
+    # generate a random Hamiltonian
+    ham = np.random.rand(2, 2)
+    ham = 0.5 * (ham + ham.T)
+    # generate a random initial state
+    state = np.random.rand(2)
+    state /= np.linalg.norm(state)
+    j = 2
+    Ns = 100
+    X = []
+    for i in range(Ns):
+        X.append(measure_Xj_1q(state, ham, j))
+    print(X)
+
+
+def test_measure_Yj_1q():
+    # generate a random Hamiltonian
+    ham = np.random.rand(2, 2)
+    ham = 0.5 * (ham + ham.T)
+    # generate a random initial state
+    state = np.random.rand(2)
+    state /= np.linalg.norm(state)
+    j = 2
+    Ns = 100
+    Y = []
+    for i in range(Ns):
+        Y.append(measure_Yj_1q(state, ham, j))
+    print(Y)
+
+
 def test_control_op_1q():
     cx = control_op_1q(X)
     diff = np.linalg.norm(cx - CNOT)

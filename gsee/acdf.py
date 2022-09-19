@@ -3,45 +3,6 @@ from gsee import helpers
 from gsee import quantum_circuits
 
 
-def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
-    """
-    Measure the real part of Tr[\rho exp(-i j tau H)]
-    One qubit case.
-    Args:
-        input_state_vector: vector, initial state
-        hamiltonian: matrix, Hamiltonian
-        j_val: int, parameter sampled
-        energy_rescalor: float, rescaling factor of the Hamiltonian (tau)
-    returns:
-        An int number to be either 1 or -1.
-    """
-    if energy_rescalor is None:
-        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
-
-    full_state_vector = quantum_circuits.main_circuit_1q(
-        input_state_vector, hamiltonian, energy_rescalor, j_val, id="X"
-    )
-    ancilla_output = quantum_circuits.measure_ancilla(full_state_vector)
-    Xj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
-    return Xj
-
-
-def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
-    """
-    Measure the imaginary part of Tr[\rho exp(-i k tau H)]
-    One qubit case.
-    """
-    if energy_rescalor is None:
-        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
-
-    full_state_vector = quantum_circuits.main_circuit_1q(
-        input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
-    )
-    ancilla_output = quantum_circuits.measure_ancilla(full_state_vector)
-    Yj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
-    return Yj
-
-
 def classical_sampler(num_samples, max_dft_order, rescaled_energy_acc, nmesh=200):
     """
     Generate the j values from [-max_dft_order, max_dft_order]
@@ -89,8 +50,8 @@ def quantum_sampler(j_samp, input_state, hamiltonian, energy_rescalor=None):
     X_samp = []
     Y_samp = []
     for j in j_samp:
-        X_samp.append(measure_Xj_1q(input_state, hamiltonian, j, energy_rescalor))
-        Y_samp.append(measure_Yj_1q(input_state, hamiltonian, j, energy_rescalor))
+        X_samp.append(quantum_circuits.measure_Xj_1q(input_state, hamiltonian, j, energy_rescalor))
+        Y_samp.append(quantum_circuits.measure_Yj_1q(input_state, hamiltonian, j, energy_rescalor))
 
     X_samp = np.asarray(X_samp)
     Y_samp = np.asarray(Y_samp)
