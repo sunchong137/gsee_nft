@@ -77,14 +77,6 @@ class TestHelpers():
         assert np.linalg.norm(ah_dft - ah_ref) < 1e-10
         
 
-    def test_rescale_hamiltonian_spectrum(self):
-        bound = np.pi / 3 
-        ham = np.zeros((2, 2))
-        ham[0, 0] = -1
-        ham[1, 1] = 0.5
-        tau = helpers.rescale_hamiltonian_spectrum(ham)
-        ref_tau = bound / 1
-        assert abs(tau - ref_tau) < 1e-10
 
 if __name__ == "__main__":
     # to run a specific test

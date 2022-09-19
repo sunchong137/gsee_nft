@@ -22,21 +22,6 @@ def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, n
     return dft_approx_heaviside_k
 
 
-def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
-    """
-    Rescaling the hamiltonian, returns the rescaling factor tau.
-    Suppose we can diagonalize the Hamiltonian.
-    Args:
-        hamiltonian : 2D array, the matrix representation of the Hamiltonian
-        bound       : the targeted upper limit of the spectrum of the Hamiltonian
-    Returns:
-        Float (tau in the paper).
-    """
-    energies, _ = np.linalg.eigh(hamiltonian)
-    energy_rescaling_factor = bound / max(abs(energies[0]), abs(energies[-1]))
-
-    return energy_rescaling_factor
-
 #
 # The following functions are private and only called in this file.
 #

@@ -1,32 +1,33 @@
 import numpy as np
 from scipy import linalg as sl
 import random
-from gsee import helpers
 from gsee import gates
 
 
-def main_circuit_1q(state, ham, j, tau=None, id="X"):
-    '''n circuit for the one qubit case.
-    Main circuit. Eq.(1) in the paper
-    Args:
-        ham  : hamiltonian
-        ham: Hamiltonian, 2x2 array
-        j  : integer
-         tau: rescaling factor
-        id  : measure the real part or imaginary part.
-    Return:
-        The entangled state of the ancilla qubit and state qubit.
+def control_time_evolve_1q(init_state, hamiltonian, dft_order, energy_rescalor=None, id="X"):
     '''
-    if tau is None:
-        tau = helpers.rescale_hamiltonian_spectrum(ham)
+    Eq. (1) in the paper.
+    The circuit to perform the controlled time evolution and Hadamard test.
+    Args:
+        init_state      : 1D array. Initial quantum state (does not include the ancilla qubit).
+        hamiltonian     : 2D array. Single-qubit Hamiltonian.
+        dft_order       : Integer. Sampled from [-d, d] (j in the paper).
+        energy_rescalor : float. Rescaling factor of the Hamiltonian spectrum (tau in the paper).
+        id              : String. If id == "X": the real part of exp(-i j tau H) is measured;
+                                  If id == "Y": the imaginary part of exp(-i j tau H) is measured.                     
+    Return:
+        The entangled state of the ancilla and the quantum state.
+    '''
+    if energy_rescalor is None:
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
 
     # apply Hadamard gate onto ancilla first
-    ancilla = np.array([1, 0])
+    ancilla = np.array([1, 0]) # initialize the ancilla to be |0>
     ancilla = np.dot(gates.Hd, ancilla)
-    full_state = np.kron(ancilla, state)
+    full_state = np.kron(ancilla, init_state)
 
     # apply the controlled time evolution
-    expH = sl.expm(-1.j * j * tau * ham) # exponential of a matrix
+    expH = sl.expm(-1.j * dft_order * energy_rescalor * hamiltonian) # exponential of a matrix
     c_expH = control_op_1q(expH)
     full_state = np.dot(c_expH, full_state)
 
@@ -83,9 +84,9 @@ def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
         An int number to be either 1 or -1.
     """
     if energy_rescalor is None:
-        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = main_circuit_1q(
+    full_state_vector = control_time_evolve_1q(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="X"
     )
     ancilla_output = measure_ancilla(full_state_vector)
@@ -99,9 +100,9 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     One qubit case.
     """
     if energy_rescalor is None:
-        energy_rescalor = helpers.rescale_hamiltonian_spectrum(hamiltonian)
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = main_circuit_1q(
+    full_state_vector = control_time_evolve_1q(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
     )
     ancilla_output = measure_ancilla(full_state_vector)
@@ -120,6 +121,20 @@ def control_op_1q(op):
 
     return c_op
 
+def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
+    """
+    Rescaling the hamiltonian, returns the rescaling factor tau.
+    Suppose we can diagonalize the Hamiltonian.
+    Args:
+        hamiltonian : 2D array, the matrix representation of the Hamiltonian
+        bound       : the targeted upper limit of the spectrum of the Hamiltonian
+    Returns:
+        Float (tau in the paper).
+    """
+    energies, _ = np.linalg.eigh(hamiltonian)
+    energy_rescaling_factor = bound / max(abs(energies[0]), abs(energies[-1]))
+
+    return energy_rescaling_factor
 
 if __name__ == "__main__":
 
@@ -127,7 +142,7 @@ if __name__ == "__main__":
     cnot = control_op_1q(gates.X)
     print(cnot)
     
-    # run main_circuit_1qubit
+    # run control_time_evolve_1qubit
     state = np.random.rand(2)
     state /= np.linalg.norm(state)
     ham = np.random.rand(2, 2)
@@ -136,9 +151,10 @@ if __name__ == "__main__":
     tau = np.pi/(3 * max(abs(ew[0]), abs(ew[1])))
     j = 1
     W = gates.I
-    full_state = main_circuit_1q(state, ham, tau, j, W)
+    full_state = control_time_evolve_1q(state, ham, tau, j, W)
     print(full_state)
 
     # run measure_ancilla()
     props = measure_ancilla(full_state)
     print(props)
+

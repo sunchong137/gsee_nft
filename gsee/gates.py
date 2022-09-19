@@ -7,4 +7,7 @@ Z = np.array([[1., 0.], [0., -1.]])
 I  = np.eye(2) # identity gate
 Hd = np.array([[1., 1.], [1., -1.]])/np.sqrt(2) # Hadamard gate
 S = np.array([[1., 0.], [0., 1.j]]) # phase gate
-Sdag = np.array([[1., 0.], [0., -1.j]]) # S^\dag
+Sdag = np.array([[1., 0.], [0., -1.j]]) # S^\dag 
+
+# two-qubit gates
+CNOT = np.array([[1,0,0,0],[0,1,0,0],[0,0,0,1],[0,0,1,0]])
