@@ -4,11 +4,13 @@ Near Fault Tolerant GSEE algorithms
 References
 ----------
 
-[Heaviside filter](https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.3.010318)
-[Gaussian filter](https://arxiv.org/abs/2209.06811)
+* [Heaviside filter](https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.3.010318)
+* [Gaussian filter](https://arxiv.org/abs/2209.06811)
 
-Authors: Chong Sun <sunchong137@gmail.com>
-         Peter Johnson <peter@zapatacomputing.com>
+Authors
+-------
+* Chong Sun <sunchong137@gmail.com>
+* Peter Johnson <peter@zapatacomputing.com>
 
 Installation
 ------------

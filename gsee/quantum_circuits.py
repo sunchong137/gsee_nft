@@ -4,7 +4,7 @@ import random
 from gsee import gates
 
 
-def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energy_rescalor=None, id="X"):
+def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energy_rescalor=None, id="X", energy_bound=np.pi/3):
     '''
     Eq. (1) in the paper.
     The circuit to perform the controlled time evolution and Hadamard test.
@@ -14,12 +14,13 @@ def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energ
         dft_order          : Integer. Sampled from [-d, d] (j in the paper).
         energy_rescalor    : float. Rescaling factor of the Hamiltonian spectrum (tau in the paper).
         id                 : String. If id == "X": the real part of exp(-i j tau H) is measured;
-                                     If id == "Y": the imaginary part of exp(-i j tau H) is measured.                     
+                                     If id == "Y": the imaginary part of exp(-i j tau H) is measured.   
+        energy_bound       : the maximum of the energy spectrum.                             
     Return:
         The entangled state of the ancilla and the quantum state.
     '''
     if energy_rescalor is None:
-        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian, bound=energy_bound)
 
     # apply Hadamard gate onto ancilla first
     ancilla = np.array([1, 0]) # initialize the ancilla to be |0>
@@ -44,28 +45,22 @@ def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energ
 
     return full_state
     
-def measure_ancilla(full_state):
+def measure_ancilla(full_state_vector):
     '''
     Do a measurement of the ancilla qubit.
     Args:
-        full_state: 1d array, the two-qubit state of | ancilla, state>
+        full_state_vector : 1d array, the two-qubit state of | ancilla, state>
     Returns:
         int: 0 or 1, measurement of the ancilla qubit
 
     '''
-    l_state = full_state.shape[-1]
+    l_state = full_state_vector.shape[-1]
     l_half = int(l_state / 2)
     assert abs(l_half - l_state/2) < 1e-10 # must be even   
-    p0 = np.sum(np.abs(full_state[:l_half]) **2 )
-
-    # props = np.array([p0, 1 - p0])
-    # outs = np.array([0, 1])
-    # a = np.random.choice(outs, p=props)
-    # return a
-    # NOTE: for some reason np.random.choice() is much slower than my code.
+    p0 = np.sum(np.abs(full_state_vector[:l_half]) ** 2)
 
     # mimic the collapsing
-    a =  random.uniform(0, 1)
+    a = random.uniform(0, 1)
     if a < p0:
         return 0
     else:
