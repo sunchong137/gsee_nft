@@ -5,6 +5,23 @@ import time
 
 
 class TestQuantumCircuits():
+    
+    def test_control_time_evolve_1qubit(self):
+        # generate a random Hamiltonian
+        ham = np.zeros((2, 2))
+        ham[0, 0] = 1
+        ham[1, 1] = -1
+        # generate a random initial state
+        state = np.array([1, -1])
+        state /= np.linalg.norm(state)
+        j = 2
+        full_state = control_time_evolve_1qubit(state, ham, j, id="X")
+        print(full_state) 
+        assert abs(np.linalg.norm(full_state) - 1) < 1e-10
+        
+        full_state = control_time_evolve_1qubit(state, ham, j, id="Y")
+        print(full_state) 
+        assert abs(np.linalg.norm(full_state) - 1) < 1e-10
 
     def test_measure_Xj_1q(self):
         # generate a random Hamiltonian
@@ -70,17 +87,7 @@ class TestQuantumCircuits():
         assert np.abs(p0 - prop_0) < 1e-2
         print("Diff: {}".format(np.abs(p0 - prop_0)))
 
-    def test_control_time_evolve_1q(self):
-        # generate a random Hamiltonian
-        ham = np.zeros((2, 2))
-        ham = 0.5 * (ham + ham.T)
-        # generate a random initial state
-        state = np.random.rand(2)
-        state /= np.linalg.norm(state)
-        j = 2
-        full_state = control_time_evolve_1q(state, ham, j)
-        print(full_state) 
-        assert abs(np.linalg.norm(full_state) - 1) < 1e-10
+
         
     def test_rescale_hamiltonian_spectrum(self):
         bound = np.pi / 3 
@@ -93,4 +100,4 @@ class TestQuantumCircuits():
 
 if __name__ == "__main__":
         obj = TestQuantumCircuits()
-        #obj.test_control_time_evolve_1q()
+        obj.test_rescale_hamiltonian_spectrum()

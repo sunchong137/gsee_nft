@@ -1,8 +1,14 @@
-A simple implementation of the GSEE algorithm by Lin & Tong 
+Near Fault Tolerant GSEE algorithms
 ===========================================================
-[Link to the paper](https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.3.010318)
+
+References
+----------
+
+[Heaviside filter](https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.3.010318)
+[Gaussian filter](https://arxiv.org/abs/2209.06811)
 
 Authors: Chong Sun <sunchong137@gmail.com>
+         Peter Johnson <peter@zapatacomputing.com>
 
 Installation
 ------------

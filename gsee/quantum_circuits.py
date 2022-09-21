@@ -4,17 +4,17 @@ import random
 from gsee import gates
 
 
-def control_time_evolve_1q(init_state, hamiltonian, dft_order, energy_rescalor=None, id="X"):
+def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energy_rescalor=None, id="X"):
     '''
     Eq. (1) in the paper.
     The circuit to perform the controlled time evolution and Hadamard test.
     Args:
-        init_state      : 1D array. Initial quantum state (does not include the ancilla qubit).
-        hamiltonian     : 2D array. Single-qubit Hamiltonian.
-        dft_order       : Integer. Sampled from [-d, d] (j in the paper).
-        energy_rescalor : float. Rescaling factor of the Hamiltonian spectrum (tau in the paper).
-        id              : String. If id == "X": the real part of exp(-i j tau H) is measured;
-                                  If id == "Y": the imaginary part of exp(-i j tau H) is measured.                     
+        input_state_vector : 1D array. Initial quantum state (does not include the ancilla qubit).
+        hamiltonian        : 2D array. Single-qubit Hamiltonian.
+        dft_order          : Integer. Sampled from [-d, d] (j in the paper).
+        energy_rescalor    : float. Rescaling factor of the Hamiltonian spectrum (tau in the paper).
+        id                 : String. If id == "X": the real part of exp(-i j tau H) is measured;
+                                     If id == "Y": the imaginary part of exp(-i j tau H) is measured.                     
     Return:
         The entangled state of the ancilla and the quantum state.
     '''
@@ -24,7 +24,7 @@ def control_time_evolve_1q(init_state, hamiltonian, dft_order, energy_rescalor=N
     # apply Hadamard gate onto ancilla first
     ancilla = np.array([1, 0]) # initialize the ancilla to be |0>
     ancilla = np.dot(gates.Hd, ancilla)
-    full_state = np.kron(ancilla, init_state)
+    full_state = np.kron(ancilla, input_state_vector)
 
     # apply the controlled time evolution
     expH = sl.expm(-1.j * dft_order * energy_rescalor * hamiltonian) # exponential of a matrix
@@ -71,23 +71,23 @@ def measure_ancilla(full_state):
     else:
         return 1
     
-def measure_Xj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
+def measure_Xj_1q(input_state_vector, hamiltonian, dft_order, energy_rescalor=None):
     """
     Measure the real part of Tr[\rho exp(-i j tau H)]
     One qubit case.
     Args:
-        input_state_vector: vector, initial state
-        hamiltonian: matrix, Hamiltonian
-        j_val: int, parameter sampled
-        energy_rescalor: float, rescaling factor of the Hamiltonian (tau)
+        input_state_vector : vector, initial state.
+        hamiltonian        : matrix, Hamiltonian.
+        dft_order          : int, parameter sampled from [-d, d].
+        energy_rescalor    : float, rescaling factor of the Hamiltonian (tau)
     returns:
         An int number to be either 1 or -1.
     """
     if energy_rescalor is None:
         energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = control_time_evolve_1q(
-        input_state_vector, hamiltonian, energy_rescalor, j_val, id="X"
+    full_state_vector = control_time_evolve_1qubit(
+        input_state_vector, hamiltonian, energy_rescalor, dft_order, id="X"
     )
     ancilla_output = measure_ancilla(full_state_vector)
     Xj = -1.0 * (2 * ancilla_output - 1)  # 0 -> 1, 1 -> -1
@@ -102,7 +102,7 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     if energy_rescalor is None:
         energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
 
-    full_state_vector = control_time_evolve_1q(
+    full_state_vector = control_time_evolve_1qubit(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
     )
     ancilla_output = measure_ancilla(full_state_vector)
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     tau = np.pi/(3 * max(abs(ew[0]), abs(ew[1])))
     j = 1
     W = gates.I
-    full_state = control_time_evolve_1q(state, ham, tau, j, W)
+    full_state = control_time_evolve_1qubit(state, ham, tau, j, W)
     print(full_state)
 
     # run measure_ancilla()
