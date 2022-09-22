@@ -1,7 +1,9 @@
+from socket import recv_fds
+from weakref import ref
 from gsee import quantum_circuits
 from gsee import gates
 import numpy as np
-import time
+from scipy import linalg as sl
 
 
 class TestQuantumCircuits():
@@ -60,42 +62,39 @@ class TestQuantumCircuits():
         assert np.abs(p0 - prop_0) < 1e-2
 
 
-    def test_measure_Xj_1q(self):
-        # generate a random Hamiltonian
-        ham = np.random.rand(2, 2)
-        ham = 0.5 * (ham + ham.T)
+    def test_measure_Xj_Yj_1qubit(self):
+       # generate a random Hamiltonian
+        dft_order = 1
+        ham = np.zeros((2, 2))
+        ham[0, 0] = 1
+        ham[1, 1] = -1
         # generate a random initial state
-        state = np.random.rand(2)
+        state = np.array([1., -1.])
         state /= np.linalg.norm(state)
-        j = 2
-        Ns = 100
-        X = []
+        # evaluate Tr[rho exp(-ij tau H)]
+        tau = quantum_circuits.rescale_hamiltonian_spectrum(ham)
+        expH = sl.expm(-1.j * dft_order * tau * ham)
+        rho_H = np.dot(np.dot(state.conj().T, expH), state)
+
+        Ns = 20000
+        x_tot = 0
+        y_tot = 0
         for i in range(Ns):
-            X.append(quantum_circuits.measure_Xj_1q(state, ham, j))
-        print(X)
+            x = quantum_circuits.measure_Xj_1qubit(state, ham, dft_order, energy_rescalor=tau)
+            y = quantum_circuits.measure_Yj_1qubit(state, ham, dft_order, energy_rescalor=tau)
+            x_tot += x
+            y_tot += y
+        x_av = x_tot / Ns
+        y_av = y_tot / Ns
+        
+        assert abs(x_av - rho_H.real) < 5e-2
+        assert abs(y_av - rho_H.imag) < 5e-2
 
 
-    def test_measure_Yj_1q(self):
-        # generate a random Hamiltonian
-        ham = np.random.rand(2, 2)
-        ham = 0.5 * (ham + ham.T)
-        # generate a random initial state
-        state = np.random.rand(2)
-        state /= np.linalg.norm(state)
-        j = 2
-        Ns = 100
-        Y = []
-        for i in range(Ns):
-            Y.append(quantum_circuits.measure_Yj_1q(state, ham, j))
-        print(Y)
-
-
-    def test_control_op_1q(self):
-        cx = quantum_circuits.control_op_1q(gates.X)
+    def test_control_operator_1qubit(self):
+        cx = quantum_circuits.control_operator_1qubit(gates.X)
         diff = np.linalg.norm(cx - gates.CNOT)
         assert diff < 1e-15
-
-   
 
         
     def test_rescale_hamiltonian_spectrum(self):
@@ -109,4 +108,4 @@ class TestQuantumCircuits():
 
 if __name__ == "__main__":
         obj = TestQuantumCircuits()
-        obj.test_measure_ancilla()
+        obj.test_measure_Xj_Yj_1qubit()

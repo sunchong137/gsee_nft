@@ -29,7 +29,7 @@ def control_time_evolve_1qubit(input_state_vector, hamiltonian, dft_order, energ
 
     # apply the controlled time evolution
     expH = sl.expm(-1.j * dft_order * energy_rescalor * hamiltonian) # exponential of a matrix
-    c_expH = control_op_1q(expH)
+    c_expH = control_operator_1qubit(expH)
     full_state = np.dot(c_expH, full_state)
 
     # apply W gate to ancilla
@@ -66,7 +66,7 @@ def measure_ancilla(full_state_vector):
     else:
         return 1
     
-def measure_Xj_1q(input_state_vector, hamiltonian, dft_order, energy_rescalor=None):
+def measure_Xj_1qubit(input_state_vector, hamiltonian, dft_order, energy_rescalor=None, energy_bound=np.pi/3):
     """
     Measure the real part of Tr[\rho exp(-i j tau H)]
     One qubit case.
@@ -79,7 +79,7 @@ def measure_Xj_1q(input_state_vector, hamiltonian, dft_order, energy_rescalor=No
         An int number to be either 1 or -1.
     """
     if energy_rescalor is None:
-        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian, bound=energy_bound)
 
     full_state_vector = control_time_evolve_1qubit(
         input_state_vector, hamiltonian, energy_rescalor, dft_order, id="X"
@@ -89,13 +89,13 @@ def measure_Xj_1q(input_state_vector, hamiltonian, dft_order, energy_rescalor=No
     return Xj
 
 
-def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
+def measure_Yj_1qubit(input_state_vector, hamiltonian, j_val, energy_rescalor=None, energy_bound=np.pi/3):
     """
     Measure the imaginary part of Tr[\rho exp(-i k tau H)]
     One qubit case.
     """
     if energy_rescalor is None:
-        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian)
+        energy_rescalor = rescale_hamiltonian_spectrum(hamiltonian, bound=energy_bound)
 
     full_state_vector = control_time_evolve_1qubit(
         input_state_vector, hamiltonian, energy_rescalor, j_val, id="Y"
@@ -105,16 +105,16 @@ def measure_Yj_1q(input_state_vector, hamiltonian, j_val, energy_rescalor=None):
     return Yj
 
 
-def control_op_1q(op):
+def control_operator_1qubit(gate_1qubit):
     '''
     Given a single qubit operator op, return controlled-op.
     For single qubit, the formula is simply 
-    [[I , 0 ], [0, op]]
+    [[I , 0 ], [0, gate]]
     '''
-    c_op = np.eye(4) + 1.j * np.zeros((4, 4))
-    c_op[2:, 2:] = op
+    c_gate = np.eye(4) + 1.j * np.zeros((4, 4))
+    c_gate[2:, 2:] = gate_1qubit
 
-    return c_op
+    return c_gate
 
 def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
     """
@@ -133,23 +133,4 @@ def rescale_hamiltonian_spectrum(hamiltonian, bound=np.pi/3):
 
 if __name__ == "__main__":
 
-    # run control_op_1q
-    cnot = control_op_1q(gates.X)
-    print(cnot)
-    
-    # run control_time_evolve_1qubit
-    state = np.random.rand(2)
-    state /= np.linalg.norm(state)
-    ham = np.random.rand(2, 2)
-    ham = 0.5 * (ham + ham.T)
-    ew, ev = np.linalg.eigh(ham)
-    tau = np.pi/(3 * max(abs(ew[0]), abs(ew[1])))
-    j = 1
-    W = gates.I
-    full_state = control_time_evolve_1qubit(state, ham, tau, j, W)
-    print(full_state)
-
-    # run measure_ancilla()
-    props = measure_ancilla(full_state)
-    print(props)
-
+    pass

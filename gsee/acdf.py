@@ -50,8 +50,8 @@ def quantum_sampler(j_samp, input_state, hamiltonian, energy_rescalor=None):
     X_samp = []
     Y_samp = []
     for j in j_samp:
-        X_samp.append(quantum_circuits.measure_Xj_1q(input_state, hamiltonian, j, energy_rescalor))
-        Y_samp.append(quantum_circuits.measure_Yj_1q(input_state, hamiltonian, j, energy_rescalor))
+        X_samp.append(quantum_circuits.measure_Xj_1qubit(input_state, hamiltonian, j, energy_rescalor))
+        Y_samp.append(quantum_circuits.measure_Yj_1qubit(input_state, hamiltonian, j, energy_rescalor))
 
     X_samp = np.asarray(X_samp)
     Y_samp = np.asarray(Y_samp)
