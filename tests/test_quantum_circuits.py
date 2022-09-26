@@ -1,5 +1,3 @@
-from socket import recv_fds
-from weakref import ref
 from gsee import quantum_circuits
 from gsee import gates
 import numpy as np
