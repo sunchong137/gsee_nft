@@ -29,45 +29,46 @@ class TestACDF():
         
         
     def test_eval_acdf_single_sample(self):
-        x = np.linspace(-pi / 3, pi / 3, 100)
-        F_tot = 2.0
+        x = np.array([-0.1, 0., 0.1])
         j = 2
-        Xj = 1.0
-        Yj = -1.0
-        Zj = Xj + 1.0j * Yj
+        Zj = 1 + 1.0j
         ang_j = 0.1
         G = acdf.eval_acdf_single_sample(x, j, Zj, ang_j)
-        print(G.shape)
+        ref = np.array([1.094837581924854+0.8951707486311975j, 
+                        0.8951707486311975+1.094837581924854j,
+                        0.6598162824642664+1.2508566957869456j])
+        diff = np.linalg.norm(G - ref)
+        assert  diff < 1e-10
 
 
     def test_acdf_kernel(self):
-        Ns = 10000
-        d = 40
-        delt = 0.2
-        nmesh = 500
-        max_x = pi / 2
-        x = np.linspace(-max_x, max_x, nmesh)
-        # generate a random Hamiltonian
-        ham = np.random.rand(2, 2)
-        ham = 0.5 * (ham + ham.T)
-
-        # rescale hamiltonian
-        tau = rescale_hamiltonian_spectrum(ham, bound=np.pi/3)
-        ham *=  tau
-
-        ew, ev = np.linalg.eigh(ham)
-        state = ev[0] + np.random.rand(2) * 0.5  # make a good initial guess
-        state /= np.linalg.norm(state)
-        print("eigenvalues - E1: {}; E2: {}".format(ew[0], ew[1]))
-        p0 = np.dot(ev[0].T, state) ** 2
-        print("The overlap between the initial state and the ground state: {}".format(p0))
-        # generate a random initial state
-        Fj, j_samp = acdf.classical_sampler(Ns, d, delt, nmesh=nmesh)
-        Z_samp = acdf.quantum_sampler(j_samp, state, ham, energy_rescalor=tau)
-
-        G_bar = acdf.acdf_kernel(d, Fj, j_samp, Z_samp, energy_grid=x, nmesh=nmesh)
-
+        num_samples = 3
+        max_dft_order = 1
+        dft_filter_coeffs = np.array([0.1*np.exp(1.j), 
+                                      0.5*np.exp(0.2j),
+                                      1.0*np.exp(-0.1j)])
+        dft_orders_sample = np.array([0, -1, 1])
+        ham_evo_sample = np.array([1.+1.j, 1.-1.j, -1.-1.j])
+        energy_grid = np.array([-0.1, 0.1])
+        abs_dft = np.array([0.1, 0.5, 1.0])
+        angle_sample = np.array([0.2, 1., -0.1])
+        f_tot = np.sum(abs_dft)
+        
+        G_ref_1 = np.sum(ham_evo_sample * np.exp(1.j * (angle_sample - dft_orders_sample * 0.1))) * f_tot / 3
+        G_ref_2 = np.sum(ham_evo_sample * np.exp(1.j * (angle_sample + dft_orders_sample * 0.1))) * f_tot / 3
+        G_ref = np.array([G_ref_1, G_ref_2])
+        
+        G = acdf.acdf_kernel(max_dft_order,
+                             dft_filter_coeffs, 
+                             dft_orders_sample, 
+                             ham_evo_sample, 
+                             energy_grid=energy_grid)
+        
+    
+        diff = np.linalg.norm(G - G_ref)
+        assert diff < 1e-8
+        
 
 if __name__ == "__main__":
     obj = TestACDF()
-    obj.test_classical_sampler()
+    obj.test_acdf_kernel()

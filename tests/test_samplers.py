@@ -1,6 +1,9 @@
+from random import sample
 import unittest
 import numpy as np
 from gsee import samplers
+from scipy import linalg as sl
+from gsee import quantum_circuits
 
 class TestSamplers():
     def test_dft_order_sampler(self):
@@ -19,7 +22,6 @@ class TestSamplers():
             counts[i] = np.count_nonzero(dft_orders == dft_order_range[i])
         diff = np.linalg.norm(counts / num_samples - abs_dft_coeffs / np.sum(abs_dft_coeffs))
         assert diff < 5e-2
-        
         
 if __name__ == "__main__":
     obj = TestSamplers()
