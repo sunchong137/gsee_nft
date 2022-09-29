@@ -1,34 +1,30 @@
 import numpy as np
 from gsee import helpers
 from gsee import quantum_circuits
+from gsee import samplers
 
 
 def classical_sampler(num_samples, max_dft_order, rescaled_energy_acc, nmesh=2000):
     """
-    Generate the dft orders from [-max_dft_order, max_dft_order]
+    Generate the dft orders from [-max_dft_order, max_dft_order] wrt the heaviside distribution.
     Args:
         num_samples         : number of samples
         max_dft_order       : cutoff of the DFT expansion (d in the paper)
         rescaled_energy_acc : energy accuracy * tau (delta in the paper)
         nmesh               : number of grids to generate a mesh of real space points
     Returns:
-        dft_coeffs          : - an array of complex numbers (DFT coefficients of the approximate Heaviside function)
-        dft_orders_samp - an array of integers of size num_samples.
+        dft_coeffs          : an array of complex numbers (DFT coefficients of the approximate Heaviside function)
+        dft_orders_sample   : an array of integers of size num_samples.
     """
 
-    # generate Fj Pr(k = j) = |Fj| / \sum_j |Fj|
+    # TODO this function is unnecessary
     dft_order_range = np.arange(-max_dft_order, max_dft_order+1, 1)
+    # generate Fj Pr(k = j) = |Fj| / \sum_j |Fj|
     dft_coeffs = helpers.dft_coeffs_approx_heaviside(
         max_dft_order, rescaled_energy_acc, dft_order_range, nmesh
     )
-    dft_coeffs_abs = np.abs(dft_coeffs)
 
-    # evaluate probability distribution Pr(J = j) = |Fj| / \sum_j |Fj|
-    coeffs_tot = np.sum(dft_coeffs_abs)
-    weights = dft_coeffs_abs / coeffs_tot
-
-    # generate random j values
-    dft_orders_sample = np.random.choice(dft_order_range, size=num_samples, p=weights)
+    dft_orders_sample = samplers.dft_order_sampler(num_samples, max_dft_order, dft_coeffs)
 
     return dft_coeffs, dft_orders_sample
 
