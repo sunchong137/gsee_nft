@@ -47,7 +47,8 @@ def hamiltonian_evolutor_sampler(dft_orders_sample, input_state_vector, hamilton
         imag_sample.append(quantum_circuits.measure_Yj_1qubit(input_state_vector, hamiltonian, dft_order, energy_rescalor))
 
     real_sample = np.asarray(real_sample)
-    real_sample = np.asarray(real_sample)
+    imag_sample = np.asarray(imag_sample)
+    
     expiH_sample = real_sample + 1.0j * imag_sample
 
     return expiH_sample

@@ -1,17 +1,17 @@
 """
 Generate the approximate CDF for a one qubit Hamiltonian.
 """
-from gsee.acdf import *
+from gsee import acdf
 import numpy as np
 from matplotlib import pyplot as plt
 
 # Set the parameters
 n_samp = 10000
-max_dft_order = 400
+max_dft_order = 40
 rescaled_energy_acc = 0.02
-nmesh = 500
-max_x = pi / 2
-energy_grid = np.linspace(-max_x, max_x, nmesh)
+nmesh = 5000
+max_x = np.pi / 2
+energy_grid = np.linspace(-max_x, max_x, nmesh, endpoint=True)
 init_guess_noise = 1.5
 
 
@@ -33,11 +33,11 @@ p0 = np.dot(ev[:, 0].T, state) ** 2
 print("The overlap between the initial state and the ground state: {}".format(p0))
 
 # Perform the classical and quantum sampling separately
-Fj, j_samp = classical_sampler(n_samp, max_dft_order, rescaled_energy_acc, nmesh=nmesh)
-Z_samp = quantum_sampler(j_samp, state, hamiltonian, energy_rescalor=None)
+Fj, j_samp = acdf.classical_sampler(n_samp, max_dft_order, rescaled_energy_acc, nmesh=nmesh)
+Z_samp = acdf.quantum_sampler(j_samp, state, hamiltonian, energy_rescalor=None)
 
 # evaluate the ACDF
-G_bar = acdf_kernel(
+G_bar = acdf.acdf_kernel(
     max_dft_order, Fj, j_samp, Z_samp, energy_grid=energy_grid, nmesh=nmesh
 )
 
