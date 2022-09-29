@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 # Set the parameters
 n_samp = 10000
 max_dft_order = 40
-rescaled_energy_acc = 0.02
-nmesh = 5000
+rescaled_energy_acc = 0.01
+nmesh = 10000
 max_x = np.pi / 2
 energy_grid = np.linspace(-max_x, max_x, nmesh, endpoint=True)
 init_guess_noise = 1.5
@@ -23,6 +23,7 @@ hamiltonian = 0.5 * (hamiltonian + hamiltonian.T)
 
 # Solve the Hamiltonian
 ew, ev = np.linalg.eigh(hamiltonian)
+energy_rescalor = np.pi / 3
 print("eigenvalues: E0 = {}; E1 = {}".format(ew[0], ew[1]))
 
 # generate the initial guess based on the ground state ev[:0]
@@ -43,7 +44,7 @@ G_bar = acdf.acdf_kernel(
 
 # Plot the ACDF
 plt.plot(energy_grid, G_bar)
-plt.xticks(ticks=ew, labels=["E0", "E1"])
+plt.xticks(ticks=ew * energy_rescalor , labels=["E0", "E1"])
 plt.xlabel(r"$energy$")
 plt.ylabel(r"$ACDF$")
 # plt.savefig("figures/G_bar.png", dpi=300)

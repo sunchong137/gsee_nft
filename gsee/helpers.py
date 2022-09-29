@@ -25,7 +25,7 @@ def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, n
 #
 # The following functions are private and only called in this file.
 #
-def _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=None, nmesh=None, thr=1e-5):
+def _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=None, nmesh=2000, thr=1e-5):
     """
     Evaluate smear Dirac delta function in Lemma 5 at [-pi, pi].
     Args:
@@ -39,9 +39,9 @@ def _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=None, nmesh=None
     if grids is None:    
         assert nmesh is not None
         grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
-        
+    assert np.abs(grids[-1] - np.pi) < 1e-10    
     grids_n = 1 + 2 * (np.cos(grids) - np.cos(rescaled_energy_acc)) / (1 + np.cos(rescaled_energy_acc))
-    smear_dirac = eval_chebyt(max_dft_order, grids_n)
+    smear_dirac = eval_chebyt(max_dft_order+1, grids_n) # NOTE changed max_dft_order to max_dft_order + 1
     smear_dirac /= integrate.simpson(smear_dirac, grids)
 
     return smear_dirac
@@ -50,11 +50,13 @@ def _eval_dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grids, 
     """
     Fourier transform of the smear dirac function.
     """
+
     if grids is None:
         assert nmesh is not None
         grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
     smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=grids, thr=thr)
     dft_smear_dirac = _eval_dft_coeffs_slow(smear_dirac, dft_grids, grids)
+    print(np.abs(dft_smear_dirac) - 1./np.sqrt(2*np.pi))
     return dft_smear_dirac
 
 
