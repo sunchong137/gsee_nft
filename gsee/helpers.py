@@ -21,7 +21,6 @@ def dft_coeffs_approx_heaviside(max_dft_order, rescaled_energy_acc, dft_grids, n
     
     return dft_approx_heaviside_k
 
-
 #
 # The following functions are private and only called in this file.
 #
@@ -56,7 +55,7 @@ def _eval_dft_coeffs_smear_dirac(max_dft_order, rescaled_energy_acc, dft_grids, 
         grids = np.linspace(-np.pi, np.pi, nmesh + 1, endpoint=True)
     smear_dirac = _eval_smear_dirac(max_dft_order, rescaled_energy_acc, grids=grids, thr=thr)
     dft_smear_dirac = _eval_dft_coeffs_slow(smear_dirac, dft_grids, grids)
-    print(np.abs(dft_smear_dirac) - 1./np.sqrt(2*np.pi))
+    #print(np.abs(dft_smear_dirac) - 1./np.sqrt(2*np.pi))
     return dft_smear_dirac
 
 
@@ -96,7 +95,7 @@ def _eval_dft_coeffs_heaviside(dft_grids):
         np.seterr(divide="ignore", invalid="ignore")
         num_order = len(dft_grids)
         dft_heaviside_k = np.zeros(num_order)
-        dft_heaviside_k = -2.0j * (dft_grids % 2) / (np.sqrt(2 * np.pi) * dft_grids)  # complain when k = 0
+        dft_heaviside_k = -2.0j * np.abs(dft_grids % 2) / (np.sqrt(2 * np.pi) * dft_grids)  # complain when k = 0
         dft_heaviside_k[np.where(dft_grids == 0)] = np.sqrt(np.pi / 2.0)
 
     except:

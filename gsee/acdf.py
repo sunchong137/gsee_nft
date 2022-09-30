@@ -1,8 +1,8 @@
+from time import time
 import numpy as np
 from gsee import helpers
-from gsee import quantum_circuits
 from gsee import samplers
-
+from scipy import linalg as sl
 
 
 def acdf_kernel(max_dft_order, dft_filter_coeffs, dft_orders_sample, hamiltonian_evolutors_sample, 
@@ -108,3 +108,24 @@ def eval_acdf_single_sample(energy_grids, dft_order, hamiltonian_evolutor, angle
     acdf_single_estimate = hamiltonian_evolutor * np.exp(1.0j * (angle_dft_coeff + dft_order * energy_grids))
     return acdf_single_estimate
 
+
+# for debug
+def gen_acdf_exact(dft_filter_coeffs, input_state, hamiltonian, max_dft_order, energy_rescalor=None, nmesh=1000):
+    
+    energy_grid = np.linspace(-np.pi/2, np.pi/2, nmesh, endpoint=True)
+    dft_orders = np.arange(-max_dft_order, max_dft_order+1, 1)
+    input_state /= np.linalg.norm(input_state) # re-normalize the state
+    
+    acdf_exact = np.zeros_like(energy_grid, dtype=np.complex128)
+    len_dft_orders = len(dft_orders)
+    
+    for i in range(len_dft_orders):
+        J = dft_orders[i]
+        time_evolutor = sl.expm(-1.j * dft_orders[i] * energy_rescalor * hamiltonian)
+        expectation = np.dot(np.dot(input_state.conj().T, time_evolutor), input_state)
+        acdf_exact += dft_filter_coeffs[i] * np.exp(1.j * dft_orders[i] * energy_grid) * expectation
+        
+    
+    return acdf_exact
+    
+    

@@ -1,5 +1,5 @@
 from gsee import acdf
-from gsee.helpers import *
+from gsee import helpers
 from gsee.quantum_circuits import *
 import numpy as np
 from matplotlib import pyplot as plt
@@ -68,7 +68,42 @@ class TestACDF():
         diff = np.linalg.norm(G - G_ref)
         assert diff < 1e-8
         
+    def test_gen_acdf_exact(self):
+        
+        max_dft_order = 40
+        dft_order_range = np.arange(-max_dft_order, max_dft_order+1, 1)
+        rescaled_energy_acc = 0.01
+        # Set the Hamiltonian
+        # Generate a random real one-qubit Hamiltonian
+        # hamiltonian = np.random.rand(2, 2)
+        hamiltonian = np.array([[1, 0], [0, -0.7]])
+        hamiltonian = 0.5 * (hamiltonian + hamiltonian.T)
 
+        # Solve the Hamiltonian
+        ew, ev = np.linalg.eigh(hamiltonian)
+        energy_rescalor = np.pi / 3
+
+        # generate the initial guess based on the ground state ev[:0]
+        # state = ev[:, 0] + np.random.rand(2) * init_guess_noise
+        state = np.array([0.5, 0.5])
+        state /= np.linalg.norm(state)
+        
+        dft_coeffs = helpers.dft_coeffs_approx_heaviside(
+        max_dft_order, rescaled_energy_acc, dft_order_range, nmesh=2000
+    )
+        
+        
+        dft_coeffs = helpers._eval_dft_coeffs_heaviside(dft_order_range)
+        
+        G = acdf.gen_acdf_exact(dft_coeffs, state, hamiltonian, max_dft_order, energy_rescalor, nmesh=1000)
+        
+        G = np.abs(G)
+        print(max(G))
+#
+        energy_grid = np.linspace(-np.pi/2, np.pi/2, 1000, endpoint=True)
+        plt.plot(energy_grid, G)
+        plt.show()
+        
 if __name__ == "__main__":
     obj = TestACDF()
-    obj.test_acdf_kernel()
+    obj.test_gen_acdf_exact()
