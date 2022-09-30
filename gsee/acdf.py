@@ -41,7 +41,7 @@ def acdf_kernel(max_dft_order, dft_filter_coeffs, dft_orders_sample, hamiltonian
         acdf_sample += acdf_single_sample
 
     abs_dft_coeffs = np.abs(dft_filter_coeffs)
-    F_tot = np.sum(abs_dft_coeffs)
+    F_tot = np.sum(abs_dft_coeffs) / np.sqrt(2 * np.pi)
 
     acdf_sample = acdf_sample * F_tot / num_samples
 
@@ -111,7 +111,9 @@ def eval_acdf_single_sample(energy_grids, dft_order, hamiltonian_evolutor, angle
 
 # for debug
 def gen_acdf_exact(dft_filter_coeffs, input_state, hamiltonian, max_dft_order, energy_rescalor=None, nmesh=1000):
-    
+    '''
+    Evaluate the acdf according to Eq. (10).
+    '''
     energy_grid = np.linspace(-np.pi/2, np.pi/2, nmesh, endpoint=True)
     dft_orders = np.arange(-max_dft_order, max_dft_order+1, 1)
     input_state /= np.linalg.norm(input_state) # re-normalize the state

@@ -101,7 +101,7 @@ class TestACDF():
         print(max(G))
 #
         energy_grid = np.linspace(-np.pi/2, np.pi/2, 1000, endpoint=True)
-        plt.plot(energy_grid, G)
+        plt.plot(energy_grid, G/np.sqrt(2*np.pi))
         plt.show()
         
 if __name__ == "__main__":
